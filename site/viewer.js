@@ -195,7 +195,9 @@ async function main() {
   function loadDepth() {
     if (depthBytes || depthLoading || !data.depth) return;
     depthLoading = true;
-    fetchBytes(data.depth.file).then((b) => { depthBytes = b; dirty = true; }).catch(() => { available.depth = false; renderLayersMenu(); });
+    renderLayersMenu();
+    fetchBytes(data.depth.file).then((b) => { depthBytes = b; depthLoading = false; dirty = true; renderLayersMenu(); })
+      .catch(() => { depthLoading = false; available.depth = false; layers.depth = false; renderLayersMenu(); });
   }
   function depthCanvas(index) {
     if (depthCache.has(index)) return depthCache.get(index);
@@ -238,11 +240,21 @@ async function main() {
   }
   new ResizeObserver(resize).observe(stage);
   video.addEventListener('loadedmetadata', resize);
-  // the heavy layers are fetched in the background once the video is in, so the toggle is instant later
-  video.addEventListener('progress', () => {
-    const buffered = video.buffered;
-    if (buffered.length && video.duration && buffered.end(buffered.length - 1) >= video.duration - 1) loadMasks();
-  });
+  // the heavy layers are fetched in the background, so the toggle is instant later; but only once the video is
+  // in enough to play (or has failed), so they don't compete with it on a weak link
+  let preloaded = false;
+  function preloadHeavyLayers() {
+    if (preloaded) return;
+    preloaded = true;
+    loadMasks();
+    loadDepth();
+  }
+  const fullyBuffered = () => video.buffered.length > 0 && video.duration > 0
+    && video.buffered.end(video.buffered.length - 1) >= video.duration - 1;
+  video.addEventListener('progress', () => { if (fullyBuffered()) preloadHeavyLayers(); });
+  video.addEventListener('canplaythrough', preloadHeavyLayers, { once: true });
+  video.addEventListener('error', preloadHeavyLayers, { once: true });
+  setTimeout(preloadHeavyLayers, 15000); // a browser may stop buffering a long video early
 
   function label(text, x, y, color) {
     ctx.font = '12px system-ui, sans-serif';
@@ -430,7 +442,7 @@ async function main() {
       const input = document.createElement('input');
       input.type = 'checkbox'; input.checked = !!layers[key]; input.disabled = !on;
       input.addEventListener('change', () => { layers[key] = input.checked; if (key === 'depth' && input.checked) loadDepth(); if (key === 'masks' && input.checked) loadMasks(); dirty = true; updateLayersButton(); });
-      const note = key === 'masks' && masksLoading ? ' (загрузка…)' : '';
+      const note = (key === 'masks' && masksLoading) || (key === 'depth' && depthLoading && !depthBytes) ? ' (загрузка…)' : '';
       label.append(input, document.createTextNode(LAYER_TITLES[key] + (on ? note : ' (нет данных)')));
       panel.append(label);
     });
