@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title data-i18n="pageTitle">Laundry Task: Annotated Egocentric Episode</title>
   <meta name="description" content="Interactive viewer of a first-person laundry episode with action hierarchy, object tracking, hand pose, depth and 3D scene annotations.">
-  <link rel="stylesheet" href="viewer.css?v=12">
+  <link rel="stylesheet" href="viewer.css?v=14">
 </head>
 <body>
   <header>
@@ -35,7 +35,8 @@
         <label><span data-i18n="speed">Speed</span>
           <select id="speed"><option>0.25</option><option>0.5</option><option selected>1</option><option>2</option></select>
         </label>
-        <span class="hint" data-i18n="hint">Space — pause, ← → — ±1 s, , . — frame</span>
+        <button id="side-toggle" type="button" aria-expanded="true" data-i18n="hidePanel">Hide panel ▸</button>
+        <span class="hint" data-i18n="hint">Space - pause, ← → - ±1 s, , . - frame</span>
       </div>
       <canvas id="timeline"></canvas>
       <div id="timeline-tip" hidden></div>
@@ -51,6 +52,6 @@
       <div id="tab-info" class="tab" hidden></div>
     </aside>
   </main>
-  <script src="viewer.js?v=12"></script>
+  <script src="viewer.js?v=14"></script>
 </body>
 </html>

@@ -58,7 +58,8 @@ const I18N = {
     pageTitle: 'Стирка белья: размеченный эпизод от первого лица', heading: 'Стирка белья: размеченный эпизод от первого лица',
     note: 'Только просмотр. Часть разметки получена моделями (позы, глубина, камера) и не является измерением.',
     loading: 'Загрузка разметки…', space: 'Пробел', speed: 'Скорость',
-    hint: 'Пробел — пауза, ← → — ±1 с, , . — кадр',
+    hint: 'Пробел - пауза, ← → - ±1 с, , . - кадр',
+    hidePanel: 'Свернуть меню ▸', showPanel: '◂ Показать меню',
     tabActions: 'Действия', tabScene: 'Сцена 3D', tabInfo: 'О разметке',
     boxes: 'Рамки трекинга', masks: 'Маски', trajectories: 'Траектории', hand2d: 'Поза рук 2D', hand3d: 'Поза рук 3D',
     depth: 'Глубина', interactions: 'Взаимодействия', states: 'Состояния', subtitles: 'Субтитры действий',
@@ -74,12 +75,12 @@ const I18N = {
     handFrames: (h) => `Поз рук (кадров): ${h}`, depthMaps: (n) => `Карт глубины: ${n}`,
     scene3dLine: (g) => `Сцена 3D: ${g}`, scenesList: (n, list) => `${n} сцен(ы): ${list}`, notComputed: 'не посчитана',
     infoRead: 'Как читать',
-    read1: 'Слои выбираются в меню «Слои» в левом верхнем углу видео. Полоски под видео — иерархия действий (Task › Subtask › Atomic action); клик по полоске или по действию справа перематывает видео.',
-    read2: 'Взаимодействия со знаком «?» и действия «не проверено» — предложения моделей, которые человек ещё не подтвердил.',
+    read1: 'Слои выбираются в меню «Слои» в левом верхнем углу видео. Полоски под видео - иерархия действий (Task › Subtask › Atomic action); клик по полоске или по действию справа перематывает видео.',
+    read2: 'Взаимодействия со знаком «?» и действия «не проверено» - предложения моделей, которые человек ещё не подтвердил.',
     infoLimits: 'Ограничения',
-    limits: (sc) => `Позы рук, глубина и положение камеры — оценки моделей по видео с телефона, а не измерения. Путь камеры рвётся там, где трекинг теряется (например, ткань закрыла весь кадр), поэтому 3D разбито на ${sc.length} сцен(ы), у каждой своя система координат и свой масштаб${sc.length && sc.every((g) => g.scale.method === 'hand_size') ? ' (подогнан по размеру кисти)' : ''}; между сценами их нельзя совмещать. Угол обзора камеры предположен (${sc.length ? sc[0].fov_deg : 65}°). Внутри сцены путь со временем накапливает ошибку.`,
-    s3title: 'Сцена 3D', camNow: 'камера сейчас', leftHand: 'левая рука', rightHand: 'правая рука', trail: 'линии — путь за последние 2 с',
-    helpOrbit: 'Тяните мышью — вращение, колесо — масштаб, двойной клик — сброс вида. Если комната «двоится», путь камеры и глубина не совпали.',
+    limits: (sc) => `Позы рук, глубина и положение камеры - оценки моделей по видео с телефона, а не измерения. Путь камеры рвётся там, где трекинг теряется (например, ткань закрыла весь кадр), поэтому 3D разбито на ${sc.length} сцен(ы), у каждой своя система координат и свой масштаб${sc.length && sc.every((g) => g.scale.method === 'hand_size') ? ' (подогнан по размеру кисти)' : ''}; между сценами их нельзя совмещать. Угол обзора камеры предположен (${sc.length ? sc[0].fov_deg : 65}°). Внутри сцены путь со временем накапливает ошибку.`,
+    s3title: 'Сцена 3D', camNow: 'камера сейчас', leftHand: 'левая рука', rightHand: 'правая рука', trail: 'линии - путь за последние 2 с',
+    helpOrbit: 'Тяните мышью - вращение, колесо - масштаб, двойной клик - сброс вида. Если комната «двоится», путь камеры и глубина не совпали.',
     helpCamera: 'Сцена так, как её видела камера в этот момент: запустите видео, и облако точек будет двигаться вместе с ним.',
     modeCamera: 'Из камеры', modeOrbit: 'Орбита', modeTop: 'Сверху',
     s3go: 'К началу посчитанного отрезка',
@@ -92,7 +93,8 @@ const I18N = {
     pageTitle: 'Laundry Task: Annotated Egocentric Episode', heading: 'Laundry Task: Annotated Egocentric Episode',
     note: 'View only. Part of the annotations come from models (poses, depth, camera) and are not measurements.',
     loading: 'Loading annotations…', space: 'Space', speed: 'Speed',
-    hint: 'Space — pause, ← → — ±1 s, , . — frame',
+    hint: 'Space - pause, ← → - ±1 s, , . - frame',
+    hidePanel: 'Hide panel ▸', showPanel: '◂ Show panel',
     tabActions: 'Actions', tabScene: '3D scene', tabInfo: 'About',
     boxes: 'Tracking boxes', masks: 'Masks', trajectories: 'Trajectories', hand2d: 'Hand pose 2D', hand3d: 'Hand pose 3D',
     depth: 'Depth', interactions: 'Interactions', states: 'States', subtitles: 'Action subtitles',
@@ -112,7 +114,7 @@ const I18N = {
     read2: 'Interactions marked “?” and actions marked “unverified” are model proposals that a person has not confirmed yet.',
     infoLimits: 'Limitations',
     limits: (sc) => `Hand poses, depth and camera position are model estimates from a phone video, not measurements. The camera path breaks where tracking is lost (for example, cloth fills the whole frame), so the 3D is split into ${sc.length} scene${sc.length === 1 ? '' : 's'}, each with its own coordinate frame and scale${sc.length && sc.every((g) => g.scale.method === 'hand_size') ? ' (fitted to hand size)' : ''}; scenes cannot be overlaid on each other. The camera field of view is assumed (${sc.length ? sc[0].fov_deg : 65}°). Within a scene the path accumulates error over time.`,
-    s3title: '3D scene', camNow: 'camera now', leftHand: 'left hand', rightHand: 'right hand', trail: 'lines — path over the last 2 s',
+    s3title: '3D scene', camNow: 'camera now', leftHand: 'left hand', rightHand: 'right hand', trail: 'lines - path over the last 2 s',
     helpOrbit: 'Drag to rotate, wheel to zoom, double-click to reset the view. If the room looks doubled, the camera path and the depth disagree.',
     helpCamera: 'The scene as the camera saw it at this moment: play the video and the point cloud moves with it.',
     modeCamera: 'Camera view', modeOrbit: 'Orbit', modeTop: 'Top-down',
@@ -648,7 +650,7 @@ async function main() {
     const hit = actions.filter((a) => a.level === level && frame >= a.start && frame <= a.end)[0];
     const tip = $('timeline-tip');
     tip.hidden = !hit;
-    if (hit) { tip.textContent = `${actionTitle(hit)} · ${clock(hit.start / fps)}–${clock(hit.end / fps)}`; tip.style.left = `${e.clientX + 12}px`; tip.style.top = `${e.clientY + 14}px`; }
+    if (hit) { tip.textContent = `${actionTitle(hit)} · ${clock(hit.start / fps)}-${clock(hit.end / fps)}`; tip.style.left = `${e.clientX + 12}px`; tip.style.top = `${e.clientY + 14}px`; }
   });
   timeline.addEventListener('pointerup', () => { scrubbing = false; });
   timeline.addEventListener('pointerleave', () => { $('timeline-tip').hidden = true; });
@@ -712,7 +714,7 @@ async function main() {
         <div>${t('tracksMasks', Object.keys(tracks).length, maskCount)}</div>
         <div>${t('handFrames', handPoses)}</div>
         <div>${t('depthMaps', data.depth ? data.depth.f.length : 0)}</div>
-        <div>${t('scene3dLine', scenes.length ? t('scenesList', scenes.length, scenes.map((g) => `${clock(g.start / fps)}–${clock(g.end / fps)}`).join(', ')) : t('notComputed'))}</div>
+        <div>${t('scene3dLine', scenes.length ? t('scenesList', scenes.length, scenes.map((g) => `${clock(g.start / fps)}-${clock(g.end / fps)}`).join(', ')) : t('notComputed'))}</div>
       </div>
       <div class="card"><h3>${t('infoRead')}</h3>
         <div>${t('read1')}</div>
@@ -779,7 +781,7 @@ async function main() {
     scenes.forEach((g, n) => {
       const chip = document.createElement('button');
       chip.type = 'button'; chip.className = 'chip'; chip.dataset.scene = n;
-      chip.textContent = `${n + 1} · ${clock(g.start / fps)}–${clock(g.end / fps)}`;
+      chip.textContent = `${n + 1} · ${clock(g.start / fps)}-${clock(g.end / fps)}`;
       chip.addEventListener('click', () => { seek(g.start); });
       $('s3-scenes').append(chip);
     });
@@ -949,11 +951,22 @@ async function main() {
 
   // ---------------------------------------------------------------- loop
   renderInfo();
+  // the right panel can be folded away to give the video the whole width
+  function setSideHidden(hidden) {
+    $('app').classList.toggle('side-hidden', hidden);
+    $('side-toggle').setAttribute('aria-expanded', String(!hidden));
+    $('side-toggle').textContent = t(hidden ? 'showPanel' : 'hidePanel');
+    try { localStorage.setItem('sideHidden', hidden ? '1' : '0'); } catch (e) { /* ignore */ }
+    window.dispatchEvent(new Event('resize'));
+  }
+  $('side-toggle').addEventListener('click', () => setSideHidden(!$('app').classList.contains('side-hidden')));
+  try { if (localStorage.getItem('sideHidden') === '1') setSideHidden(true); } catch (e) { /* ignore */ }
   function setLang(next) {
     if (!I18N[next] || next === lang) return;
     lang = next;
     try { localStorage.setItem('lang', lang); } catch (e) { /* ignore */ }
     applyStaticText(); setTitles(); renderLayersMenu(); renderInfo();
+    $('side-toggle').textContent = t($('app').classList.contains('side-hidden') ? 'showPanel' : 'hidePanel');
     actionsKey = ''; dirty = true;
     if (scene3dReady) { scene3dReady = false; if (tab === 'scene3d') initScene3d(); }
   }

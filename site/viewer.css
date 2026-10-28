@@ -66,3 +66,9 @@ button:hover { border-color: var(--accent); }
 .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 8px; }
 .chip { padding: 2px 10px; font-size: 12px; border-radius: 12px; }
 .chip.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+#side-toggle { margin-left: auto; font-size: 12px; padding: 3px 10px; }
+#side-toggle + .hint { margin-left: 0; }
+#app.side-hidden #side { display: none; }
+#app.side-hidden #player { flex-basis: 100%; }
+#app.side-hidden #stage { width: min(100%, calc((100vh - 250px) * 16 / 9)); margin: 0 auto; }
