@@ -23,6 +23,15 @@ const STATE_TEXT = {
   folded_unfolded: { ru: ['Сложен / развёрнут', { folded: 'сложен', unfolded: 'развёрнут', partially_folded: 'частично сложен' }], en: ['Folded / unfolded', { folded: 'folded', unfolded: 'unfolded', partially_folded: 'partly folded' }] },
   clean_dirty: { ru: ['Чистый / грязный', { clean: 'чистый', dirty: 'грязный', wet: 'мокрый' }], en: ['Clean / dirty', { clean: 'clean', dirty: 'dirty', wet: 'wet' }] },
 };
+// action names come from the data in Russian; the English view maps the known ones and leaves the rest as is
+const ACTION_EN = {
+  'Стирка белья': 'Doing laundry',
+  'Открыть стиральную машину': 'Open the washing machine',
+  'Положить бельё в стиральную машину': 'Put laundry into the washing machine',
+  'Закрыть стиральную машину': 'Close the washing machine',
+  'Заполнить стиральную машину средство для стирки': 'Add detergent to the washing machine',
+  'Запустить стиральную машину': 'Start the washing machine',
+};
 const LEVEL_NAMES = ['Task', 'Subtask', 'Atomic action'];
 const LEVEL_COLORS = ['#4c9aff', '#36cfc9', '#ffc53d'];
 const LAYER_KEYS = ['boxes', 'masks', 'trajectories', 'hand2d', 'hand3d', 'depth', 'interactions', 'states', 'subtitles'];
@@ -496,7 +505,10 @@ async function main() {
   // ---------------------------------------------------------------- actions, subtitles
   const activeActions = (frame) => actions.filter((a) => frame >= a.start && frame <= a.end);
   const deepest = (frame) => activeActions(frame).sort((a, b) => b.level - a.level || b.start - a.start)[0];
-  const actionTitle = (a) => a.caption || a.type || [a.verb, a.noun, a.hand].filter(Boolean).join(' ') || `${LEVEL_NAMES[a.level]} #${a.id}`;
+  const actionTitle = (a) => {
+    const title = a.caption || a.type || [a.verb, a.noun, a.hand].filter(Boolean).join(' ') || `${LEVEL_NAMES[a.level]} #${a.id}`;
+    return (lang === 'en' && ACTION_EN[title]) || title;
+  };
 
   function drawSubtitles() {
     const box = $('subs');
