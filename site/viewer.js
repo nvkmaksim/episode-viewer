@@ -61,7 +61,7 @@ const I18N = {
     hint: 'Пробел — пауза, ← → — ±1 с, , . — кадр',
     tabActions: 'Действия', tabScene: 'Сцена 3D', tabInfo: 'О разметке',
     boxes: 'Рамки трекинга', masks: 'Маски', trajectories: 'Траектории', hand2d: 'Поза рук 2D', hand3d: 'Поза рук 3D',
-    depth: 'Глубина', interactions: 'Взаимодействия', states: 'Состояния', subtitles: 'Субтитры голоса',
+    depth: 'Глубина', interactions: 'Взаимодействия', states: 'Состояния', subtitles: 'Субтитры действий',
     docTitle: (n) => `Разметка: ${n}`,
     videoError: 'Не удалось загрузить видео (video.mp4). Разметка ниже доступна.',
     noData: ' (нет данных)', loadingNote: ' (загрузка…)', objects: 'Объекты', layers: (n) => `Слои (${n}) ▾`,
@@ -93,7 +93,7 @@ const I18N = {
     hint: 'Space — pause, ← → — ±1 s, , . — frame',
     tabActions: 'Actions', tabScene: '3D scene', tabInfo: 'About',
     boxes: 'Tracking boxes', masks: 'Masks', trajectories: 'Trajectories', hand2d: 'Hand pose 2D', hand3d: 'Hand pose 3D',
-    depth: 'Depth', interactions: 'Interactions', states: 'States', subtitles: 'Voice subtitles',
+    depth: 'Depth', interactions: 'Interactions', states: 'States', subtitles: 'Action subtitles',
     docTitle: (n) => `Annotations: ${n}`,
     videoError: 'Could not load the video (video.mp4). The annotations below are still available.',
     noData: ' (no data)', loadingNote: ' (loading…)', objects: 'Objects', layers: (n) => `Layers (${n}) ▾`,
@@ -203,7 +203,7 @@ async function main() {
     depth: !!data.depth,
     interactions: data.relationships.length > 0,
     states: data.states.length > 0,
-    subtitles: hasVoice || actions.length > 0,
+    subtitles: actions.some((a) => a.level === 2),
   };
   const layers = {
     boxes: available.boxes, masks: false, trajectories: false, hand2d: available.hand2d, hand3d: false, depth: false,
@@ -530,8 +530,9 @@ async function main() {
     const box = $('subs');
     let text = '';
     if (layers.subtitles) {
-      const a = deepest(frameNow());
-      if (a) text = a.voice || actionTitle(a);
+      const frame = frameNow();
+      const a = actions.find((x) => x.level === 2 && frame >= x.start && frame <= x.end);
+      if (a) text = actionTitle(a);
     }
     if (box.textContent !== text) box.textContent = text;
     box.hidden = !text;
@@ -616,6 +617,12 @@ async function main() {
         if (width > 50) { tctx.fillStyle = '#10131a'; tctx.fillText(fitText(actionTitle(a), Math.floor(width / 6.5)), x + 4, 6 + level * (ROW + 2) + 14); }
       });
       tctx.fillStyle = '#9aa1ad'; tctx.fillText(LEVEL_NAMES[level], 4, 6 + level * (ROW + 2) + 14);
+    }
+    // where the geometry (camera, 3D hands) was computed
+    if (geometry) {
+      tctx.fillStyle = '#52c41a';
+      tctx.fillRect(px(geometry.start), 6 + 3 * (ROW + 2) + 2, Math.max(2, px(geometry.end) - px(geometry.start)), 6);
+      tctx.fillStyle = '#9aa1ad'; tctx.fillText('3D', 4, 6 + 3 * (ROW + 2) + 9);
     }
     const x = px(frameNow());
     tctx.fillStyle = '#ff4d4f'; tctx.fillRect(x - 1, 0, 2, h);
