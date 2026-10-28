@@ -232,7 +232,14 @@ async function main() {
     $('video-error').hidden = false;
     $('video-error').textContent = t('videoError');
   });
-  const frameNow = () => Math.min(Math.max(0, Math.round(video.currentTime * fps)), ep.total_frames - 1);
+  // currentTime runs ahead of the picture that is on the screen; the time of the presented frame does not
+  let shownTime = null;
+  if ('requestVideoFrameCallback' in video) {
+    const onFrame = (now, meta) => { shownTime = meta.mediaTime; dirty = true; video.requestVideoFrameCallback(onFrame); };
+    video.requestVideoFrameCallback(onFrame);
+    video.addEventListener('seeking', () => { shownTime = null; });
+  }
+  const frameNow = () => Math.min(Math.max(0, Math.round((shownTime === null ? video.currentTime : shownTime) * fps)), ep.total_frames - 1);
   const seek = (frame) => {
     video.currentTime = Math.min(Math.max(0, frame / fps), (video.duration || ep.duration_s) - 0.001);
     dirty = true;
@@ -401,10 +408,22 @@ async function main() {
         if (!visible(Number(id))) return;
         const j = nearest(maskFrames[id], frame, 4);
         if (j < 0) return;
-        const m = maskBitmap(id, maskFrames[id][j], hex(colorOf(Number(id))));
+        const maskFrame = maskFrames[id][j];
+        const m = maskBitmap(id, maskFrame, hex(colorOf(Number(id))));
         if (!m) return;
+        // masks exist for every 6th frame, boxes for every frame: carry the mask along the box to this frame
+        let left = m.left; let top = m.top; let w = m.canvas.width; let h = m.canvas.height;
+        const from = maskFrame === frame ? null : boxAt(id, maskFrame, 0);
+        const to = from && boxAt(id, frame, 1);
+        if (from && to) {
+          const sx = (to[2] - to[0]) / Math.max(1, from[2] - from[0]);
+          const sy = (to[3] - to[1]) / Math.max(1, from[3] - from[1]);
+          if (sx > 0.5 && sx < 2 && sy > 0.5 && sy < 2) {
+            left = to[0] + (m.left - from[0]) * sx; top = to[1] + (m.top - from[1]) * sy; w *= sx; h *= sy;
+          }
+        }
         ctx.globalAlpha = 0.42;
-        ctx.drawImage(m.canvas, X(m.left), X(m.top), X(m.canvas.width), X(m.canvas.height));
+        ctx.drawImage(m.canvas, X(left), X(top), X(w), X(h));
         ctx.globalAlpha = 1;
       });
     }
