@@ -79,7 +79,9 @@ const I18N = {
     infoLimits: 'Ограничения',
     limits: (sc) => `Позы рук, глубина и положение камеры — оценки моделей по видео с телефона, а не измерения. Путь камеры рвётся там, где трекинг теряется (например, ткань закрыла весь кадр), поэтому 3D разбито на ${sc.length} сцен(ы), у каждой своя система координат и свой масштаб${sc.length && sc.every((g) => g.scale.method === 'hand_size') ? ' (подогнан по размеру кисти)' : ''}; между сценами их нельзя совмещать. Угол обзора камеры предположен (${sc.length ? sc[0].fov_deg : 65}°). Внутри сцены путь со временем накапливает ошибку.`,
     s3title: 'Сцена 3D', camNow: 'камера сейчас', leftHand: 'левая рука', rightHand: 'правая рука', trail: 'линии — путь за последние 2 с',
-    s3help: 'Тяните мышью — вращение, колесо — масштаб, двойной клик — сброс. Если комната «двоится», путь камеры и глубина не совпали.',
+    helpOrbit: 'Тяните мышью — вращение, колесо — масштаб, двойной клик — сброс вида. Если комната «двоится», путь камеры и глубина не совпали.',
+    helpCamera: 'Сцена так, как её видела камера в этот момент: запустите видео, и облако точек будет двигаться вместе с ним.',
+    modeCamera: 'Из камеры', modeOrbit: 'Орбита', modeTop: 'Сверху',
     s3go: 'К началу посчитанного отрезка',
     s3info: (i, n, d, p) => `Сцена ${i} из ${n}: ${d} видео, камера: ${p} поз.`,
     s3cloudFail: ' Облако точек не загрузилось.', outside3d: 'сейчас вне посчитанного отрезка 3D',
@@ -111,7 +113,9 @@ const I18N = {
     infoLimits: 'Limitations',
     limits: (sc) => `Hand poses, depth and camera position are model estimates from a phone video, not measurements. The camera path breaks where tracking is lost (for example, cloth fills the whole frame), so the 3D is split into ${sc.length} scene${sc.length === 1 ? '' : 's'}, each with its own coordinate frame and scale${sc.length && sc.every((g) => g.scale.method === 'hand_size') ? ' (fitted to hand size)' : ''}; scenes cannot be overlaid on each other. The camera field of view is assumed (${sc.length ? sc[0].fov_deg : 65}°). Within a scene the path accumulates error over time.`,
     s3title: '3D scene', camNow: 'camera now', leftHand: 'left hand', rightHand: 'right hand', trail: 'lines — path over the last 2 s',
-    s3help: 'Drag to rotate, wheel to zoom, double-click to reset. If the room looks doubled, the camera path and the depth disagree.',
+    helpOrbit: 'Drag to rotate, wheel to zoom, double-click to reset the view. If the room looks doubled, the camera path and the depth disagree.',
+    helpCamera: 'The scene as the camera saw it at this moment: play the video and the point cloud moves with it.',
+    modeCamera: 'Camera view', modeOrbit: 'Orbit', modeTop: 'Top-down',
     s3go: 'Jump to the start of the computed segment',
     s3info: (i, n, d, p) => `Scene ${i} of ${n}: ${d} of video, camera: ${p} poses.`,
     s3cloudFail: ' The point cloud failed to load.', outside3d: 'currently outside the computed 3D segment',
@@ -722,10 +726,11 @@ async function main() {
   // ---------------------------------------------------------------- scene 3D (point cloud)
   let scene3dReady = false;
   let cloud = null;
-  const view = { yaw: 0, pitch: 0.35, zoom: 1 };
-  let cloudCanvas; let cctx; let base = null; let baseDirty = true;
+  const view = { mode: 'camera', yaw: 0.6, pitch: 0.45, zoom: 1 };
+  const PRESETS = { orbit: { yaw: 0.6, pitch: 0.45, zoom: 1 }, top: { yaw: 0, pitch: -1.5, zoom: 1 } };
+  const CLOUD_W = 800; const CLOUD_H = 450;
+  let cloudCanvas; let cctx; let base = null; let baseDirty = true; let baseFrame = -1;
   let frameInfo = { centre: [0, 0, 0], radius: 1 };
-  let projectCache = null;
 
   function loadScene() {
     const g = geometry;
@@ -748,6 +753,15 @@ async function main() {
     }).catch(() => { if (geometry === g) $('s3-info').textContent += t('s3cloudFail'); });
   }
 
+  function setMode(mode) {
+    view.mode = mode;
+    if (PRESETS[mode]) Object.assign(view, PRESETS[mode]);
+    document.querySelectorAll('#s3-modes button').forEach((b) => b.classList.toggle('active', b.dataset.mode === mode));
+    const help = $('s3-help');
+    if (help) help.textContent = t(mode === 'camera' ? 'helpCamera' : 'helpOrbit');
+    baseDirty = true; dirty = true;
+  }
+
   function initScene3d() {
     if (scene3dReady || !scenes.length) return;
     scene3dReady = true;
@@ -756,10 +770,11 @@ async function main() {
     box.innerHTML = `
       <div class="card"><h3>${t('s3title')}</h3>
         <div class="chips" id="s3-scenes"></div>
+        <div class="chips" id="s3-modes"></div>
         <div class="muted" id="s3-info"></div>
-        <canvas id="cloud" width="420" height="315"></canvas>
+        <canvas id="cloud" width="${CLOUD_W}" height="${CLOUD_H}"></canvas>
         <div class="legend"><span><span class="swatch" style="background:#fff"></span> ${t('camNow')}</span><span><span class="swatch" style="background:${HAND_COLORS.left}"></span> ${t('leftHand')}</span><span><span class="swatch" style="background:${HAND_COLORS.right}"></span> ${t('rightHand')}</span><span>${t('trail')}</span></div>
-        <div class="muted">${t('s3help')}</div>
+        <div class="muted" id="s3-help"></div>
       </div>`;
     scenes.forEach((g, n) => {
       const chip = document.createElement('button');
@@ -768,26 +783,41 @@ async function main() {
       chip.addEventListener('click', () => { seek(g.start); });
       $('s3-scenes').append(chip);
     });
+    [['camera', 'modeCamera'], ['orbit', 'modeOrbit'], ['top', 'modeTop']].forEach(([mode, key]) => {
+      const button = document.createElement('button');
+      button.type = 'button'; button.className = 'chip'; button.dataset.mode = mode; button.textContent = t(key);
+      button.addEventListener('click', () => setMode(mode));
+      $('s3-modes').append(button);
+    });
     cloudCanvas = $('cloud'); cctx = cloudCanvas.getContext('2d');
     let drag = null;
-    cloudCanvas.addEventListener('pointerdown', (e) => { cloudCanvas.setPointerCapture(e.pointerId); drag = { x: e.clientX, y: e.clientY, yaw: view.yaw, pitch: view.pitch }; });
+    cloudCanvas.addEventListener('pointerdown', (e) => {
+      if (view.mode === 'camera') return;
+      cloudCanvas.setPointerCapture(e.pointerId); drag = { x: e.clientX, y: e.clientY, yaw: view.yaw, pitch: view.pitch };
+    });
     cloudCanvas.addEventListener('pointermove', (e) => {
       if (!drag) return;
-      view.yaw = drag.yaw + (e.clientX - drag.x) * 0.01;
-      view.pitch = Math.max(-1.5, Math.min(1.5, drag.pitch + (e.clientY - drag.y) * 0.01));
+      const k = 0.01 * (CLOUD_W / cloudCanvas.clientWidth);
+      view.yaw = drag.yaw + (e.clientX - drag.x) * k;
+      view.pitch = Math.max(-1.55, Math.min(1.55, drag.pitch + (e.clientY - drag.y) * k));
       baseDirty = true; dirty = true;
     });
     cloudCanvas.addEventListener('pointerup', () => { drag = null; });
-    cloudCanvas.addEventListener('dblclick', () => { Object.assign(view, { yaw: 0, pitch: 0.35, zoom: 1 }); baseDirty = true; dirty = true; });
-    cloudCanvas.addEventListener('wheel', (e) => { e.preventDefault(); view.zoom = Math.min(6, Math.max(0.3, view.zoom * (e.deltaY < 0 ? 1.1 : 0.9))); baseDirty = true; dirty = true; }, { passive: false });
+    cloudCanvas.addEventListener('dblclick', () => { if (view.mode !== 'camera') setMode(view.mode); });
+    cloudCanvas.addEventListener('wheel', (e) => {
+      if (view.mode === 'camera') return;
+      e.preventDefault(); view.zoom = Math.min(6, Math.max(0.3, view.zoom * (e.deltaY < 0 ? 1.1 : 0.9))); baseDirty = true; dirty = true;
+    }, { passive: false });
+    if (!scenes.every((g) => g.camera.q)) { view.mode = 'orbit'; $('s3-modes').firstChild.disabled = true; }
     loadScene();
-    dirty = true;
+    setMode(view.mode);
   }
 
-  function projector() {
-    const W = cloudCanvas.width; const H = cloudCanvas.height;
+  // ---- projections: both return (x, y, z) => [screenX, screenY, depth]
+  function orbitProjector() {
+    const W = CLOUD_W; const H = CLOUD_H;
     const cy = Math.cos(view.yaw); const sy = Math.sin(view.yaw); const cp = Math.cos(view.pitch); const sp = Math.sin(view.pitch);
-    const distance = (frameInfo.radius * 3.2) / view.zoom; const focal = H * 1.1; const c = frameInfo.centre;
+    const distance = (frameInfo.radius * 2.3) / view.zoom; const focal = H * 1.1; const c = frameInfo.centre;
     return (x, y, z) => {
       const px = x - c[0]; const py = -(y - c[1]); const pz = z - c[2];
       const rx = cy * px - sy * pz; const rz = sy * px + cy * pz;
@@ -796,17 +826,61 @@ async function main() {
     };
   }
 
-  function drawCloudBase(project) {
-    const W = cloudCanvas.width; const H = cloudCanvas.height;
+  function quatToMatrix([x, y, z, w]) {
+    return [
+      [1 - 2 * (y * y + z * z), 2 * (x * y - z * w), 2 * (x * z + y * w)],
+      [2 * (x * y + z * w), 1 - 2 * (x * x + z * z), 2 * (y * z - x * w)],
+      [2 * (x * z - y * w), 2 * (y * z + x * w), 1 - 2 * (x * x + y * y)],
+    ];
+  }
+
+  function slerp(a, b, u) {
+    let dot = a[0] * b[0] + a[1] * b[1] + a[2] * b[2] + a[3] * b[3];
+    const sign = dot < 0 ? -1 : 1; dot *= sign;
+    let ka = 1 - u; let kb = u * sign;
+    if (dot < 0.9995) { const th = Math.acos(dot); const s = Math.sin(th); ka = Math.sin((1 - u) * th) / s; kb = (Math.sin(u * th) / s) * sign; }
+    const q = a.map((v, i) => ka * v + kb * b[i]);
+    const n = Math.hypot(...q) || 1;
+    return q.map((v) => v / n);
+  }
+
+  // pose of the camera at a moment: position, and rotation (camera -> world) when the data has it
+  function cameraPose(frame) {
+    const cam = geometry.camera; const f = cam.f;
+    if (frame < f[0] || frame > f[f.length - 1]) return null;
+    const i = Math.max(0, lowerBound(f, frame + 1) - 1);
+    const j = Math.min(i + 1, f.length - 1);
+    const u = j === i ? 0 : (frame - f[i]) / (f[j] - f[i]);
+    const p = cam.p[i].map((v, c) => v * (1 - u) + cam.p[j][c] * u);
+    return { p, R: cam.q ? quatToMatrix(slerp(cam.q[i], cam.q[j], u)) : null };
+  }
+
+  function cameraProjector(pose) {
+    const { p, R } = pose;
+    const focal = (CLOUD_W / 2) / Math.tan((geometry.fov_deg * Math.PI) / 360);
+    return (x, y, z) => {
+      const dx = x - p[0]; const dy = y - p[1]; const dz = z - p[2];
+      const cx = R[0][0] * dx + R[1][0] * dy + R[2][0] * dz;
+      const cy = R[0][1] * dx + R[1][1] * dy + R[2][1] * dz;
+      const cz = R[0][2] * dx + R[1][2] * dy + R[2][2] * dz;
+      return [CLOUD_W / 2 + (focal * cx) / cz, CLOUD_H / 2 + (focal * cy) / cz, cz];
+    };
+  }
+
+  function drawCloudBase(project, firstPerson) {
+    const W = CLOUD_W; const H = CLOUD_H;
     base = new ImageData(W, H);
     const buffer = new Float32Array(W * H).fill(Infinity);
     for (let i = 0; i < W * H; i++) { base.data[i * 4] = 24; base.data[i * 4 + 1] = 26; base.data[i * 4 + 2] = 31; base.data[i * 4 + 3] = 255; }
     if (cloud) {
+      const focal = firstPerson ? (W / 2) / Math.tan((geometry.fov_deg * Math.PI) / 360) : H * 1.1;
       for (let i = 0; i < cloud.n; i++) {
         const [sx, sy, d] = project(cloud.xyz[3 * i], cloud.xyz[3 * i + 1], cloud.xyz[3 * i + 2]);
         if (d <= 0.1) continue;
-        const x0 = Math.round(sx); const y0 = Math.round(sy);
-        for (let dy = 0; dy < 2; dy++) for (let dx = 0; dx < 2; dx++) {
+        // a point is a little square, bigger when near, so the picture stays solid
+        const size = firstPerson ? Math.max(2, Math.min(9, Math.round((focal * 0.014) / d))) : 4;
+        const x0 = Math.round(sx - size / 2); const y0 = Math.round(sy - size / 2);
+        for (let dy = 0; dy < size; dy++) for (let dx = 0; dx < size; dx++) {
           const x = x0 + dx; const y = y0 + dy;
           if (x < 0 || y < 0 || x >= W || y >= H) continue;
           const at = y * W + x;
@@ -817,47 +891,60 @@ async function main() {
     baseDirty = false;
   }
 
-  function interpolateCamera(frame) {
-    const f = geometry.camera.f;
-    if (frame < f[0] || frame > f[f.length - 1]) return null;
-    const i = Math.max(0, lowerBound(f, frame + 1) - 1);
-    const j = Math.min(i + 1, f.length - 1);
-    const t = j === i ? 0 : (frame - f[i]) / (f[j] - f[i]);
-    return geometry.camera.p[i].map((v, c) => v * (1 - t) + geometry.camera.p[j][c] * t);
-  }
-
   function update3dMarkers(frame) {
     if (!scene3dReady || tab !== 'scene3d' || !cloudCanvas) return;
     const here = sceneAt(frame);
     if (here && here !== geometry) { geometry = here; loadScene(); }
-    const project = projector();
-    if (baseDirty || !base) drawCloudBase(project);
+    const pose = cameraPose(frame);
+    const firstPerson = view.mode === 'camera' && !!pose && !!pose.R;
+    if (firstPerson && baseFrame !== frame) baseDirty = true;
+    const project = firstPerson ? cameraProjector(pose) : orbitProjector();
+    if (baseDirty || !base) { drawCloudBase(project, firstPerson); baseFrame = frame; }
     cctx.putImageData(base, 0, 0);
+    // a line through points; the points behind the viewer cut it
     const trail = (points, color, width, dashed) => {
-      if (points.length < 2) return;
-      cctx.beginPath();
-      points.forEach((p, n) => { const [x, y] = project(p[0], p[1], p[2]); if (n === 0) cctx.moveTo(x, y); else cctx.lineTo(x, y); });
-      cctx.strokeStyle = color; cctx.lineWidth = width; cctx.setLineDash(dashed ? [5, 3] : []); cctx.stroke(); cctx.setLineDash([]);
+      cctx.beginPath(); let open = false;
+      points.forEach((p) => {
+        const [x, y, d] = project(p[0], p[1], p[2]);
+        if (d <= 0.1) { open = false; return; }
+        if (!open) { cctx.moveTo(x, y); open = true; } else cctx.lineTo(x, y);
+      });
+      cctx.strokeStyle = color; cctx.lineWidth = width * 1.6; cctx.setLineDash(dashed ? [8, 5] : []); cctx.stroke(); cctx.setLineDash([]);
     };
-    const dot = (p, color, r) => {
-      const [x, y] = project(p[0], p[1], p[2]);
-      cctx.fillStyle = color; cctx.beginPath(); cctx.arc(x, y, r, 0, Math.PI * 2); cctx.fill();
-      cctx.strokeStyle = '#000'; cctx.lineWidth = 1; cctx.stroke();
+    const dot = (p, color, r, label) => {
+      const [x, y, d] = project(p[0], p[1], p[2]);
+      if (d <= 0.1) return;
+      cctx.fillStyle = color; cctx.beginPath(); cctx.arc(x, y, r * 1.6, 0, Math.PI * 2); cctx.fill();
+      cctx.strokeStyle = '#000'; cctx.lineWidth = 2.5; cctx.stroke();
+      if (label) { cctx.fillStyle = '#fff'; cctx.font = 'bold 22px system-ui, sans-serif'; cctx.fillText(label, x + r * 1.6 + 5, y + 7); }
     };
     const win = Math.round(fps * 2);
-    const cf = geometry.camera.f;
-    const a = lowerBound(cf, frame - win); const b = lowerBound(cf, frame + 1);
-    trail(geometry.camera.p.slice(a, b), '#d9d9d9', 2, true);
-    const camera = interpolateCamera(frame);
-    if (camera) dot(camera, '#ffffff', 6);
+    const cam = geometry.camera;
+    if (!firstPerson) {
+      trail(cam.p, 'rgba(255,255,255,0.22)', 1.5, false);              // the whole path of the scene
+      const a = lowerBound(cam.f, frame - win); const b = lowerBound(cam.f, frame + 1);
+      trail(cam.p.slice(a, b), '#e6e8ec', 2.5, false);
+      if (pose) {
+        dot(pose.p, '#ffffff', 5);
+        if (pose.R) {   // the field of view of the camera as a small pyramid
+          const half = Math.tan((geometry.fov_deg * Math.PI) / 360); const depth = Math.max(0.25, frameInfo.radius * 0.14);
+          const corners = [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([sx, sy]) => {
+            const c = [sx * half * depth, sy * half * depth * (CLOUD_H / CLOUD_W), depth];
+            return [0, 1, 2].map((r) => pose.R[r][0] * c[0] + pose.R[r][1] * c[1] + pose.R[r][2] * c[2] + pose.p[r]);
+          });
+          corners.forEach((c, n) => { trail([pose.p, c], '#ffffff', 1.5, false); trail([c, corners[(n + 1) % 4]], '#ffffff', 1.5, false); });
+        }
+      }
+    }
     Object.entries(geometry.hands).forEach(([side, h]) => {
       const from = lowerBound(h.f, frame - win); const to = lowerBound(h.f, frame + 1);
-      trail(h.wrist.slice(from, to), HAND_COLORS[side], 2.5, false);
+      trail(h.wrist.slice(from, to), HAND_COLORS[side], 3, false);
       const i = nearest(h.f, frame, 8);
-      if (i >= 0) dot(h.wrist[i], HAND_COLORS[side], 5);
+      if (i >= 0) dot(h.wrist[i], HAND_COLORS[side], 6, side === 'left' ? 'L' : 'R');
     });
-    cctx.fillStyle = '#9aa1ad'; cctx.font = '11px system-ui, sans-serif';
-    if (!camera) cctx.fillText(t('outside3d'), 8, 14);
+    cctx.fillStyle = 'rgba(230,232,236,0.9)'; cctx.font = '20px system-ui, sans-serif';
+    cctx.fillText(t(firstPerson ? 'modeCamera' : view.mode === 'top' ? 'modeTop' : 'modeOrbit'), 14, 30);
+    if (!pose) { cctx.fillStyle = '#ffb3b3'; cctx.fillText(t('outside3d'), 14, 60); }
   }
 
   // ---------------------------------------------------------------- loop

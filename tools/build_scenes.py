@@ -248,7 +248,8 @@ def build_scene(data: dict, piece: dict, out_dir: Path, index: int) -> dict:
         'fov_deg': FOV, 'start': int(frames[0]), 'end': int(frames[-1]),
         'scale': {'method': method, 'factor': round(factor, 4), 'poses_used': len(ratios) if method == 'hand_size' else 0,
                   'ratio_p10_p90': [round(float(x), 3) for x in np.percentile(ratios, [10, 90])] if ratios else None},
-        'camera': {'f': [int(f) for f in frames], 'p': [[round(float(c), 5) for c in p] for p in pos], 'ok': piece['ok']},
+        'camera': {'f': [int(f) for f in frames], 'p': [[round(float(c), 5) for c in p] for p in pos],
+                   'q': [[round(float(c), 5) for c in q] for q in piece['quat']], 'ok': piece['ok']},
         'hands': hands, 'cloud': cloud_name,
     }
 
