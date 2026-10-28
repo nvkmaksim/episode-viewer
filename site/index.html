@@ -3,15 +3,16 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Просмотр разметки</title>
+  <title data-i18n="pageTitle">Просмотр разметки</title>
   <link rel="stylesheet" href="viewer.css">
 </head>
 <body>
   <header>
-    <h1 id="title">Просмотр разметки</h1>
-    <span class="note">Только просмотр. Часть разметки получена моделями (позы, глубина, камера) и не является измерением.</span>
+    <h1 id="title" data-i18n="pageTitle">Просмотр разметки</h1>
+    <span class="note" data-i18n="note">Только просмотр. Часть разметки получена моделями (позы, глубина, камера) и не является измерением.</span>
+  <div id="lang" role="group" aria-label="Language"><button type="button" data-lang="ru">RU</button><button type="button" data-lang="en">EN</button></div>
   </header>
-  <div id="loading">Загрузка разметки…</div>
+  <div id="loading" data-i18n="loading">Загрузка разметки…</div>
   <main id="app" hidden>
     <section id="player">
       <div id="stage">
@@ -25,22 +26,22 @@
         <div id="video-error" hidden></div>
       </div>
       <div id="controls">
-        <button id="play" type="button" title="Пробел">▶</button>
+        <button id="play" type="button" data-i18n-title="space" title="Пробел">▶</button>
         <span id="time">0:00 / 0:00</span>
         <span id="frame"></span>
-        <label>Скорость
+        <label><span data-i18n="speed">Скорость</span>
           <select id="speed"><option>0.25</option><option>0.5</option><option selected>1</option><option>2</option></select>
         </label>
-        <span class="hint">Пробел — пауза, ← → — ±1 с, , . — кадр</span>
+        <span class="hint" data-i18n="hint">Пробел — пауза, ← → — ±1 с, , . — кадр</span>
       </div>
       <canvas id="timeline"></canvas>
       <div id="timeline-tip" hidden></div>
     </section>
     <aside id="side">
       <nav id="tabs">
-        <button type="button" data-tab="actions" class="active">Действия</button>
-        <button type="button" data-tab="scene3d">Сцена 3D</button>
-        <button type="button" data-tab="info">О разметке</button>
+        <button type="button" data-tab="actions" class="active" data-i18n="tabActions">Действия</button>
+        <button type="button" data-tab="scene3d" data-i18n="tabScene">Сцена 3D</button>
+        <button type="button" data-tab="info" data-i18n="tabInfo">О разметке</button>
       </nav>
       <div id="tab-actions" class="tab"></div>
       <div id="tab-scene3d" class="tab" hidden></div>

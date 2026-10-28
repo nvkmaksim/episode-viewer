@@ -10,29 +10,106 @@ const FINGERS = [
 ];
 const HAND_COLORS = { left: '#1890ff', right: '#fa8c16' };
 const INTERACTIONS = {
-  grasping: ['Захват', '#ff4d4f'], holding: ['Удержание', '#fa8c16'], touching: ['Касание', '#52c41a'],
-  releasing: ['Отпускание', '#1890ff'], placing: ['Размещение', '#13c2c2'], pushing: ['Толкание', '#722ed1'],
-  pulling: ['Тяга', '#eb2f96'], approaching: ['Приближение', '#8c8c8c'], near: ['Рядом', '#8c8c8c'],
-  inside: ['Внутри', '#8c8c8c'], above: ['Над', '#8c8c8c'], below: ['Под', '#8c8c8c'], unknown: ['?', '#bfbfbf'],
+  grasping: ['Захват', '#ff4d4f', 'Grasping'], holding: ['Удержание', '#fa8c16', 'Holding'], touching: ['Касание', '#52c41a', 'Touching'],
+  releasing: ['Отпускание', '#1890ff', 'Releasing'], placing: ['Размещение', '#13c2c2', 'Placing'], pushing: ['Толкание', '#722ed1', 'Pushing'],
+  pulling: ['Тяга', '#eb2f96', 'Pulling'], approaching: ['Приближение', '#8c8c8c', 'Approaching'], near: ['Рядом', '#8c8c8c', 'Near'],
+  inside: ['Внутри', '#8c8c8c', 'Inside'], above: ['Над', '#8c8c8c', 'Above'], below: ['Под', '#8c8c8c', 'Below'], unknown: ['?', '#bfbfbf', '?'],
 };
 const STATE_TEXT = {
-  open_closed: ['Открыт / закрыт', { open: 'открыт', closed: 'закрыт', ajar: 'приоткрыт' }],
-  filled_empty: ['Заполненность', { empty: 'пустой', partially_filled: 'частично заполнен', full: 'полный' }],
-  on_off: ['Включён / выключен', { on: 'включён', off: 'выключен' }],
-  location: ['Где находится', { in_hand: 'в руке', in_basket: 'в корзине', in_drum: 'в барабане', on_table: 'на столе', on_floor: 'на полу' }],
-  folded_unfolded: ['Сложен / развёрнут', { folded: 'сложен', unfolded: 'развёрнут', partially_folded: 'частично сложен' }],
-  clean_dirty: ['Чистый / грязный', { clean: 'чистый', dirty: 'грязный', wet: 'мокрый' }],
+  open_closed: { ru: ['Открыт / закрыт', { open: 'открыт', closed: 'закрыт', ajar: 'приоткрыт' }], en: ['Open / closed', { open: 'open', closed: 'closed', ajar: 'ajar' }] },
+  filled_empty: { ru: ['Заполненность', { empty: 'пустой', partially_filled: 'частично заполнен', full: 'полный' }], en: ['Fill level', { empty: 'empty', partially_filled: 'partly filled', full: 'full' }] },
+  on_off: { ru: ['Включён / выключен', { on: 'включён', off: 'выключен' }], en: ['On / off', { on: 'on', off: 'off' }] },
+  location: { ru: ['Где находится', { in_hand: 'в руке', in_basket: 'в корзине', in_drum: 'в барабане', on_table: 'на столе', on_floor: 'на полу' }], en: ['Location', { in_hand: 'in hand', in_basket: 'in basket', in_drum: 'in drum', on_table: 'on table', on_floor: 'on floor' }] },
+  folded_unfolded: { ru: ['Сложен / развёрнут', { folded: 'сложен', unfolded: 'развёрнут', partially_folded: 'частично сложен' }], en: ['Folded / unfolded', { folded: 'folded', unfolded: 'unfolded', partially_folded: 'partly folded' }] },
+  clean_dirty: { ru: ['Чистый / грязный', { clean: 'чистый', dirty: 'грязный', wet: 'мокрый' }], en: ['Clean / dirty', { clean: 'clean', dirty: 'dirty', wet: 'wet' }] },
 };
 const LEVEL_NAMES = ['Task', 'Subtask', 'Atomic action'];
 const LEVEL_COLORS = ['#4c9aff', '#36cfc9', '#ffc53d'];
-const LAYER_TITLES = {
-  boxes: 'Рамки трекинга', masks: 'Маски', trajectories: 'Траектории', hand2d: 'Поза рук 2D', hand3d: 'Поза рук 3D',
-  depth: 'Глубина', interactions: 'Взаимодействия', states: 'Состояния', subtitles: 'Субтитры голоса',
+const LAYER_KEYS = ['boxes', 'masks', 'trajectories', 'hand2d', 'hand3d', 'depth', 'interactions', 'states', 'subtitles'];
+
+// ---------------------------------------------------------------- language (ru / en)
+const I18N = {
+  ru: {
+    pageTitle: 'Просмотр разметки',
+    note: 'Только просмотр. Часть разметки получена моделями (позы, глубина, камера) и не является измерением.',
+    loading: 'Загрузка разметки…', space: 'Пробел', speed: 'Скорость',
+    hint: 'Пробел — пауза, ← → — ±1 с, , . — кадр',
+    tabActions: 'Действия', tabScene: 'Сцена 3D', tabInfo: 'О разметке',
+    boxes: 'Рамки трекинга', masks: 'Маски', trajectories: 'Траектории', hand2d: 'Поза рук 2D', hand3d: 'Поза рук 3D',
+    depth: 'Глубина', interactions: 'Взаимодействия', states: 'Состояния', subtitles: 'Субтитры голоса',
+    docTitle: (n) => `Разметка: ${n}`,
+    videoError: 'Не удалось загрузить видео (video.mp4). Разметка ниже доступна.',
+    noData: ' (нет данных)', loadingNote: ' (загрузка…)', objects: 'Объекты', layers: (n) => `Слои (${n}) ▾`,
+    noScene: 'Для этого видео сцена 3D не посчитана', now: 'Сейчас', voice: 'Голос', goal: 'Цель', outcome: 'Результат',
+    ok: '✓ успешно', fail: '✗ неуспешно', noAction: 'Нет действия в этот момент', noActions: 'Действия не размечены.',
+    unverified: 'не проверено', left: 'левая', right: 'правая', none: 'нет', yes: 'есть',
+    infoWhat: 'Что в этом видео', duration: 'Длительность', fps: 'кадров/с',
+    counts: (a, i, s) => `Действий: ${a} · взаимодействий: ${i} · состояний: ${s}`,
+    tracksMasks: (t, m) => `Объектов с треками: ${t} · масок: ${m}`,
+    handFrames: (h) => `Поз рук (кадров): ${h}`, depthMaps: (n) => `Карт глубины: ${n}`,
+    scene3dLine: (g) => `Сцена 3D: ${g}`, frames: (a, b, c, d) => `кадры ${a}–${b} (${c}–${d})`, notComputed: 'не посчитана',
+    infoRead: 'Как читать',
+    read1: 'Слои выбираются в меню «Слои» в левом верхнем углу видео. Полоски под видео — иерархия действий (Task › Subtask › Atomic action); клик по полоске или по действию справа перематывает видео.',
+    read2: 'Взаимодействия со знаком «?» и действия «не проверено» — предложения моделей, которые человек ещё не подтвердил.',
+    infoLimits: 'Ограничения',
+    limits: (g) => `Позы рук, глубина и положение камеры — оценки моделей по видео с телефона, а не измерения. ${g ? `Масштаб метров ${g.scale.method === 'hand_size' ? `подогнан по размеру кисти (×${g.scale.factor})` : 'взят из модели глубины'}; угол обзора камеры предположен (${g.fov_deg}°). ` : ''}Путь камеры со временем накапливает ошибку.`,
+    s3title: 'Сцена 3D', camNow: 'камера сейчас', leftHand: 'левая рука', rightHand: 'правая рука', trail: 'линии — путь за последние 2 с',
+    s3help: 'Тяните мышью — вращение, колесо — масштаб, двойной клик — сброс. Если комната «двоится», путь камеры и глубина не совпали.',
+    s3go: 'К началу посчитанного отрезка',
+    s3info: (d, a, b, n) => `Посчитано на ${d} видео (${a}–${b}), камера: ${n} поз.`,
+    s3cloudFail: ' Облако точек не загрузилось.', outside3d: 'сейчас вне посчитанного отрезка 3D',
+    frame: (n) => `кадр ${n}`,
+    loadFail: (m) => `Не удалось загрузить разметку: ${m}. Откройте страницу через веб-сервер (start-viewer), а не двойным кликом по файлу.`,
+  },
+  en: {
+    pageTitle: 'Annotation viewer',
+    note: 'View only. Part of the annotations come from models (poses, depth, camera) and are not measurements.',
+    loading: 'Loading annotations…', space: 'Space', speed: 'Speed',
+    hint: 'Space — pause, ← → — ±1 s, , . — frame',
+    tabActions: 'Actions', tabScene: '3D scene', tabInfo: 'About',
+    boxes: 'Tracking boxes', masks: 'Masks', trajectories: 'Trajectories', hand2d: 'Hand pose 2D', hand3d: 'Hand pose 3D',
+    depth: 'Depth', interactions: 'Interactions', states: 'States', subtitles: 'Voice subtitles',
+    docTitle: (n) => `Annotations: ${n}`,
+    videoError: 'Could not load the video (video.mp4). The annotations below are still available.',
+    noData: ' (no data)', loadingNote: ' (loading…)', objects: 'Objects', layers: (n) => `Layers (${n}) ▾`,
+    noScene: 'The 3D scene was not computed for this video', now: 'Now', voice: 'Voice', goal: 'Goal', outcome: 'Outcome',
+    ok: '✓ success', fail: '✗ failure', noAction: 'No action at this moment', noActions: 'No actions annotated.',
+    unverified: 'unverified', left: 'left', right: 'right', none: 'none', yes: 'yes',
+    infoWhat: 'What is in this video', duration: 'Duration', fps: 'fps',
+    counts: (a, i, s) => `Actions: ${a} · interactions: ${i} · states: ${s}`,
+    tracksMasks: (t, m) => `Objects with tracks: ${t} · masks: ${m}`,
+    handFrames: (h) => `Hand poses (frames): ${h}`, depthMaps: (n) => `Depth maps: ${n}`,
+    scene3dLine: (g) => `3D scene: ${g}`, frames: (a, b, c, d) => `frames ${a}–${b} (${c}–${d})`, notComputed: 'not computed',
+    infoRead: 'How to read',
+    read1: 'Pick layers in the “Layers” menu at the top left of the video. The bars under the video are the action hierarchy (Task › Subtask › Atomic action); click a bar or an action on the right to seek the video.',
+    read2: 'Interactions marked “?” and actions marked “unverified” are model proposals that a person has not confirmed yet.',
+    infoLimits: 'Limitations',
+    limits: (g) => `Hand poses, depth and camera position are model estimates from a phone video, not measurements. ${g ? `The metric scale ${g.scale.method === 'hand_size' ? `is fitted to hand size (×${g.scale.factor})` : 'is taken from the depth model'}; the camera field of view is assumed (${g.fov_deg}°). ` : ''}The camera path accumulates error over time.`,
+    s3title: '3D scene', camNow: 'camera now', leftHand: 'left hand', rightHand: 'right hand', trail: 'lines — path over the last 2 s',
+    s3help: 'Drag to rotate, wheel to zoom, double-click to reset. If the room looks doubled, the camera path and the depth disagree.',
+    s3go: 'Jump to the start of the computed segment',
+    s3info: (d, a, b, n) => `Computed for ${d} of the video (${a}–${b}), camera: ${n} poses.`,
+    s3cloudFail: ' The point cloud failed to load.', outside3d: 'currently outside the computed 3D segment',
+    frame: (n) => `frame ${n}`,
+    loadFail: (m) => `Could not load the annotations: ${m}. Open the page through a web server (start-viewer), not by double-clicking the file.`,
+  },
 };
+let lang = 'ru';
+try {
+  const asked = new URLSearchParams(location.search).get('lang') || localStorage.getItem('lang');
+  lang = I18N[asked] ? asked : (/^ru/i.test(navigator.language || '') ? 'ru' : 'en');
+} catch (e) { /* storage blocked: keep the default */ }
+const t = (key, ...args) => { const v = I18N[lang][key]; return typeof v === 'function' ? v(...args) : v; };
+function applyStaticText() {
+  document.documentElement.lang = lang;
+  document.querySelectorAll('[data-i18n]').forEach((el) => { el.textContent = t(el.dataset.i18n); });
+  document.querySelectorAll('[data-i18n-title]').forEach((el) => { el.title = t(el.dataset.i18nTitle); });
+  document.querySelectorAll('#lang button').forEach((b) => b.classList.toggle('active', b.dataset.lang === lang));
+}
 
 const $ = (id) => document.getElementById(id);
 const stateText = (s) => {
-  const known = STATE_TEXT[s.attribute];
+  const known = (STATE_TEXT[s.attribute] || {})[lang];
   return `${known ? known[0] : s.attribute}: ${known && known[1][s.value] ? known[1][s.value] : s.value}`;
 };
 const clock = (seconds) => {
@@ -79,8 +156,8 @@ async function main() {
   const data = JSON.parse(new TextDecoder().decode(await fetchBytes('data.json.gz')));
   const ep = data.episode;
   const fps = ep.fps;
-  document.title = `Разметка: ${ep.name}`;
-  $('title').textContent = `Разметка: ${ep.name}`;
+  const setTitles = () => { document.title = t('docTitle', ep.name); $('title').textContent = t('docTitle', ep.name); };
+  setTitles();
   $('loading').hidden = true;
   $('app').hidden = false;
 
@@ -119,7 +196,7 @@ async function main() {
   video.src = videoInfo.file;
   video.addEventListener('error', () => {
     $('video-error').hidden = false;
-    $('video-error').textContent = 'Не удалось загрузить видео (video.mp4). Разметка ниже доступна.';
+    $('video-error').textContent = t('videoError');
   });
   const frameNow = () => Math.min(Math.max(0, Math.round(video.currentTime * fps)), ep.total_frames - 1);
   const seek = (frame) => {
@@ -335,7 +412,8 @@ async function main() {
         const a = boxAt(r.source, frame, 3);
         const b = boxAt(r.target, frame, 3);
         if (!a || !b) return;
-        const [name, color] = INTERACTIONS[r.type] || INTERACTIONS.unknown;
+        const [nameRu, color, nameEn] = INTERACTIONS[r.type] || INTERACTIONS.unknown;
+        const name = lang === 'en' ? nameEn : nameRu;
         const [x0, y0] = centre(a);
         const [x1, y1] = centre(b);
         ctx.strokeStyle = color; ctx.lineWidth = 3;
@@ -435,20 +513,20 @@ async function main() {
   function renderLayersMenu() {
     const panel = $('layers-panel');
     panel.innerHTML = '';
-    Object.keys(LAYER_TITLES).forEach((key) => {
+    LAYER_KEYS.forEach((key) => {
       const label = document.createElement('label');
       const on = available[key];
       label.className = on ? '' : 'off';
       const input = document.createElement('input');
       input.type = 'checkbox'; input.checked = !!layers[key]; input.disabled = !on;
       input.addEventListener('change', () => { layers[key] = input.checked; if (key === 'depth' && input.checked) loadDepth(); if (key === 'masks' && input.checked) loadMasks(); dirty = true; updateLayersButton(); });
-      const note = (key === 'masks' && masksLoading) || (key === 'depth' && depthLoading && !depthBytes) ? ' (загрузка…)' : '';
-      label.append(input, document.createTextNode(LAYER_TITLES[key] + (on ? note : ' (нет данных)')));
+      const note = (key === 'masks' && masksLoading) || (key === 'depth' && depthLoading && !depthBytes) ? t('loadingNote') : '';
+      label.append(input, document.createTextNode(t(key) + (on ? note : t('noData'))));
       panel.append(label);
     });
     if (objects.some((o) => tracks[o.id])) {
       const h = document.createElement('h4');
-      h.textContent = 'Объекты';
+      h.textContent = t('objects');
       panel.append(h);
       objects.filter((o) => tracks[o.id]).forEach((o) => {
         const label = document.createElement('label');
@@ -464,7 +542,7 @@ async function main() {
     updateLayersButton();
   }
   function updateLayersButton() {
-    $('layers-button').textContent = `Слои (${Object.keys(layers).filter((k) => layers[k] && available[k]).length}) ▾`;
+    $('layers-button').textContent = t('layers', Object.keys(layers).filter((k) => layers[k] && available[k]).length);
   }
   $('layers-button').addEventListener('click', () => { $('layers-panel').hidden = !$('layers-panel').hidden; });
   renderLayersMenu();
@@ -543,7 +621,7 @@ async function main() {
   const tabs = { actions: $('tab-actions'), scene3d: $('tab-scene3d'), info: $('tab-info') };
   let tab = 'actions';
   document.querySelectorAll('#tabs button').forEach((button) => {
-    if (button.dataset.tab === 'scene3d' && !geometry) { button.disabled = true; button.title = 'Для этого видео сцена 3D не посчитана'; }
+    if (button.dataset.tab === 'scene3d' && !geometry) { button.disabled = true; button.title = t('noScene'); }
     button.addEventListener('click', () => {
       tab = button.dataset.tab;
       document.querySelectorAll('#tabs button').forEach((b) => b.classList.toggle('active', b === button));
@@ -563,22 +641,22 @@ async function main() {
     const now = deepest(frame);
     const card = document.createElement('div');
     card.className = 'card';
-    card.innerHTML = '<h3>Сейчас</h3>';
+    card.innerHTML = `<h3>${t('now')}</h3>`;
     if (now) {
       const lines = [`<b>${esc(actionTitle(now))}</b> <span class="badge">${LEVEL_NAMES[now.level]}</span>`];
-      if (now.voice && now.voice !== actionTitle(now)) lines.push(`<div class="muted">Голос: ${esc(now.voice)}</div>`);
-      if (now.goal) lines.push(`<div class="muted">Цель: ${esc(now.goal)}</div>`);
-      if (now.outcome) lines.push(`<div class="muted">Результат: ${esc(now.outcome)}</div>`);
-      if (now.success !== null && now.success !== undefined) lines.push(`<div>${now.success ? '✓ успешно' : '✗ неуспешно'}</div>`);
+      if (now.voice && now.voice !== actionTitle(now)) lines.push(`<div class="muted">${t('voice')}: ${esc(now.voice)}</div>`);
+      if (now.goal) lines.push(`<div class="muted">${t('goal')}: ${esc(now.goal)}</div>`);
+      if (now.outcome) lines.push(`<div class="muted">${t('outcome')}: ${esc(now.outcome)}</div>`);
+      if (now.success !== null && now.success !== undefined) lines.push(`<div>${now.success ? t('ok') : t('fail')}</div>`);
       card.insertAdjacentHTML('beforeend', lines.join(''));
-    } else card.insertAdjacentHTML('beforeend', '<span class="muted">Нет действия в этот момент</span>');
+    } else card.insertAdjacentHTML('beforeend', `<span class="muted">${t('noAction')}</span>`);
     box.append(card);
-    if (!actions.length) box.insertAdjacentHTML('beforeend', '<p class="muted">Действия не размечены.</p>');
+    if (!actions.length) box.insertAdjacentHTML('beforeend', `<p class="muted">${t('noActions')}</p>`);
     actions.forEach((a) => {
       const row = document.createElement('div');
       row.className = `action${current.split(',').includes(String(a.id)) ? ' current' : ''}`;
       row.style.paddingLeft = `${6 + a.level * 16}px`;
-      row.innerHTML = `<span class="t">${clock(a.start / fps)}</span><span>${esc(actionTitle(a))}</span>${a.status === 'proposed' ? '<span class="badge">не проверено</span>' : ''}`;
+      row.innerHTML = `<span class="t">${clock(a.start / fps)}</span><span>${esc(actionTitle(a))}</span>${a.status === 'proposed' ? `<span class="badge">${t('unverified')}</span>` : ''}`;
       row.addEventListener('click', () => seek(a.start));
       box.append(row);
     });
@@ -588,23 +666,24 @@ async function main() {
   function renderInfo() {
     const box = tabs.info;
     const count = (list) => list.length;
-    const handPoses = Object.entries(data.hands).map(([s, h]) => `${s === 'left' ? 'левая' : 'правая'} ${h.f.length}`).join(', ') || 'нет';
+    const handPoses = Object.entries(data.hands).map(([side, h]) => `${t(side === 'left' ? 'left' : 'right')} ${h.f.length}`).join(', ') || t('none');
     const g = geometry;
+    const maskCount = data.masks ? Object.values(data.masks).reduce((n, m) => n + Object.keys(m).length, 0) : (data.masks_file ? t('yes') : 0);
     box.innerHTML = `
-      <div class="card"><h3>Что в этом видео</h3>
-        <div>Длительность: ${clock(ep.duration_s)} · ${Math.round(fps)} кадров/с</div>
-        <div>Действий: ${count(actions)} · взаимодействий: ${count(data.relationships)} · состояний: ${count(data.states)}</div>
-        <div>Объектов с треками: ${Object.keys(tracks).length} · масок: ${(data.masks ? Object.values(data.masks).reduce((s, m) => s + Object.keys(m).length, 0) : (data.masks_file ? 'есть' : 0))}</div>
-        <div>Поз рук (кадров): ${handPoses}</div>
-        <div>Карт глубины: ${data.depth ? data.depth.f.length : 0}</div>
-        <div>Сцена 3D: ${g ? `кадры ${g.start}–${g.end} (${clock(g.start / fps)}–${clock(g.end / fps)})` : 'не посчитана'}</div>
+      <div class="card"><h3>${t('infoWhat')}</h3>
+        <div>${t('duration')}: ${clock(ep.duration_s)} · ${Math.round(fps)} ${t('fps')}</div>
+        <div>${t('counts', count(actions), count(data.relationships), count(data.states))}</div>
+        <div>${t('tracksMasks', Object.keys(tracks).length, maskCount)}</div>
+        <div>${t('handFrames', handPoses)}</div>
+        <div>${t('depthMaps', data.depth ? data.depth.f.length : 0)}</div>
+        <div>${t('scene3dLine', g ? t('frames', g.start, g.end, clock(g.start / fps), clock(g.end / fps)) : t('notComputed'))}</div>
       </div>
-      <div class="card"><h3>Как читать</h3>
-        <div>Слои выбираются в меню «Слои» в левом верхнем углу видео. Полоски под видео — иерархия действий (Task › Subtask › Atomic action); клик по полоске или по действию справа перематывает видео.</div>
-        <div style="margin-top:6px">Взаимодействия со знаком «?» и действия «не проверено» — предложения моделей, которые человек ещё не подтвердил.</div>
+      <div class="card"><h3>${t('infoRead')}</h3>
+        <div>${t('read1')}</div>
+        <div style="margin-top:6px">${t('read2')}</div>
       </div>
-      <div class="card"><h3>Ограничения</h3>
-        <div>Позы рук, глубина и положение камеры — оценки моделей по видео с телефона, а не измерения. ${g ? `Масштаб метров ${g.scale.method === 'hand_size' ? `подогнан по размеру кисти (×${g.scale.factor})` : 'взят из модели глубины'}; угол обзора камеры предположен (${g.fov_deg}°). ` : ''}Путь камеры со временем накапливает ошибку.</div>
+      <div class="card"><h3>${t('infoLimits')}</h3>
+        <div>${t('limits', g)}</div>
       </div>`;
   }
 
@@ -621,14 +700,14 @@ async function main() {
     scene3dReady = true;
     const box = tabs.scene3d;
     box.innerHTML = `
-      <div class="card"><h3>Сцена 3D</h3>
+      <div class="card"><h3>${t('s3title')}</h3>
         <div class="muted" id="s3-info"></div>
         <canvas id="cloud" width="420" height="315"></canvas>
-        <div class="legend"><span><span class="swatch" style="background:#fff"></span> камера сейчас</span><span><span class="swatch" style="background:${HAND_COLORS.left}"></span> левая рука</span><span><span class="swatch" style="background:${HAND_COLORS.right}"></span> правая рука</span><span>линии — путь за последние 2 с</span></div>
-        <div class="muted">Тяните мышью — вращение, колесо — масштаб, двойной клик — сброс. Если комната «двоится», путь камеры и глубина не совпали.</div>
-        <p><button type="button" id="s3-go">К началу посчитанного отрезка</button></p>
+        <div class="legend"><span><span class="swatch" style="background:#fff"></span> ${t('camNow')}</span><span><span class="swatch" style="background:${HAND_COLORS.left}"></span> ${t('leftHand')}</span><span><span class="swatch" style="background:${HAND_COLORS.right}"></span> ${t('rightHand')}</span><span>${t('trail')}</span></div>
+        <div class="muted">${t('s3help')}</div>
+        <p><button type="button" id="s3-go">${t('s3go')}</button></p>
       </div>`;
-    $('s3-info').textContent = `Посчитано на ${clock((geometry.end - geometry.start) / fps)} видео (${clock(geometry.start / fps)}–${clock(geometry.end / fps)}), камера: ${geometry.camera.f.length} поз.`;
+    $('s3-info').textContent = t('s3info', clock((geometry.end - geometry.start) / fps), clock(geometry.start / fps), clock(geometry.end / fps), geometry.camera.f.length);
     $('s3-go').addEventListener('click', () => seek(geometry.start));
     cloudCanvas = $('cloud'); cctx = cloudCanvas.getContext('2d');
     let drag = null;
@@ -653,7 +732,7 @@ async function main() {
         const span = (v) => (v[Math.floor(v.length * 0.97)] || 0) - (v[Math.floor(v.length * 0.03)] || 0);
         frameInfo = { centre: [mid(xs), mid(ys), mid(zs)], radius: Math.max(span(xs), span(ys), span(zs), 0.5) / 2 };
         baseDirty = true; dirty = true;
-      }).catch(() => { $('s3-info').textContent += ' Облако точек не загрузилось.'; });
+      }).catch(() => { $('s3-info').textContent += t('s3cloudFail'); });
     }
     dirty = true;
   }
@@ -729,11 +808,20 @@ async function main() {
       if (i >= 0) dot(h.wrist[i], HAND_COLORS[side], 5);
     });
     cctx.fillStyle = '#9aa1ad'; cctx.font = '11px system-ui, sans-serif';
-    if (!camera) cctx.fillText('сейчас вне посчитанного отрезка 3D', 8, 14);
+    if (!camera) cctx.fillText(t('outside3d'), 8, 14);
   }
 
   // ---------------------------------------------------------------- loop
   renderInfo();
+  function setLang(next) {
+    if (!I18N[next] || next === lang) return;
+    lang = next;
+    try { localStorage.setItem('lang', lang); } catch (e) { /* ignore */ }
+    applyStaticText(); setTitles(); renderLayersMenu(); renderInfo();
+    actionsKey = ''; dirty = true;
+    if (scene3dReady) { scene3dReady = false; if (tab === 'scene3d') initScene3d(); }
+  }
+  document.querySelectorAll('#lang button').forEach((b) => b.addEventListener('click', () => setLang(b.dataset.lang)));
   // a link can open the page at a moment with layers on: #t=30&layers=depth,hand3d&tab=scene3d
   const hash = new URLSearchParams(location.hash.slice(1));
   if (hash.get('layers') !== null) {
@@ -753,7 +841,7 @@ async function main() {
       drawTimeline();
       renderActionsTab(frame);
       $('time').textContent = `${clock(video.currentTime)} / ${clock(video.duration || ep.duration_s)}`;
-      $('frame').textContent = `кадр ${frame}`;
+      $('frame').textContent = t('frame', frame);
     }
     requestAnimationFrame(tick);
   }
@@ -762,7 +850,8 @@ async function main() {
   tick();
 }
 
+applyStaticText();
 main().catch((error) => {
   $('loading').hidden = false;
-  $('loading').textContent = `Не удалось загрузить разметку: ${error.message}. Откройте страницу через веб-сервер (start-viewer), а не двойным кликом по файлу.`;
+  $('loading').textContent = t('loadFail', error.message);
 });
