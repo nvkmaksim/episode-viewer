@@ -1,18 +1,21 @@
 <!doctype html>
-<html lang="ru">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title data-i18n="pageTitle">Просмотр разметки</title>
-  <link rel="stylesheet" href="viewer.css">
+  <title data-i18n="pageTitle">Laundry Task: Annotated Egocentric Episode</title>
+  <meta name="description" content="Interactive viewer of a first-person laundry episode with action hierarchy, object tracking, hand pose, depth and 3D scene annotations.">
+  <link rel="stylesheet" href="viewer.css?v=6">
 </head>
 <body>
   <header>
-    <h1 id="title" data-i18n="pageTitle">Просмотр разметки</h1>
-    <span class="note" data-i18n="note">Только просмотр. Часть разметки получена моделями (позы, глубина, камера) и не является измерением.</span>
-  <div id="lang" role="group" aria-label="Language"><button type="button" data-lang="ru">RU</button><button type="button" data-lang="en">EN</button></div>
+    <div class="titles">
+      <h1 id="title" data-i18n="heading">Laundry Task: Annotated Egocentric Episode</h1>
+      <span class="note" data-i18n="note">View only. Part of the annotations come from models (poses, depth, camera) and are not measurements.</span>
+    </div>
+    <div id="lang" role="group" aria-label="Language"><button type="button" data-lang="en">EN</button><button type="button" data-lang="ru">RU</button></div>
   </header>
-  <div id="loading" data-i18n="loading">Загрузка разметки…</div>
+  <div id="loading" data-i18n="loading">Loading annotations…</div>
   <main id="app" hidden>
     <section id="player">
       <div id="stage">
@@ -26,28 +29,28 @@
         <div id="video-error" hidden></div>
       </div>
       <div id="controls">
-        <button id="play" type="button" data-i18n-title="space" title="Пробел">▶</button>
+        <button id="play" type="button" data-i18n-title="space" title="Space">▶</button>
         <span id="time">0:00 / 0:00</span>
         <span id="frame"></span>
-        <label><span data-i18n="speed">Скорость</span>
+        <label><span data-i18n="speed">Speed</span>
           <select id="speed"><option>0.25</option><option>0.5</option><option selected>1</option><option>2</option></select>
         </label>
-        <span class="hint" data-i18n="hint">Пробел — пауза, ← → — ±1 с, , . — кадр</span>
+        <span class="hint" data-i18n="hint">Space — pause, ← → — ±1 s, , . — frame</span>
       </div>
       <canvas id="timeline"></canvas>
       <div id="timeline-tip" hidden></div>
     </section>
     <aside id="side">
       <nav id="tabs">
-        <button type="button" data-tab="actions" class="active" data-i18n="tabActions">Действия</button>
-        <button type="button" data-tab="scene3d" data-i18n="tabScene">Сцена 3D</button>
-        <button type="button" data-tab="info" data-i18n="tabInfo">О разметке</button>
+        <button type="button" data-tab="actions" class="active" data-i18n="tabActions">Actions</button>
+        <button type="button" data-tab="scene3d" data-i18n="tabScene">3D scene</button>
+        <button type="button" data-tab="info" data-i18n="tabInfo">About</button>
       </nav>
       <div id="tab-actions" class="tab"></div>
       <div id="tab-scene3d" class="tab" hidden></div>
       <div id="tab-info" class="tab" hidden></div>
     </aside>
   </main>
-  <script src="viewer.js"></script>
+  <script src="viewer.js?v=6"></script>
 </body>
 </html>

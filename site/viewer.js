@@ -31,6 +31,22 @@ const ACTION_EN = {
   'Закрыть стиральную машину': 'Close the washing machine',
   'Заполнить стиральную машину средство для стирки': 'Add detergent to the washing machine',
   'Запустить стиральную машину': 'Start the washing machine',
+  'Взяться за дверцу': 'Grab the door',
+  'Открыть дверцу': 'Open the door',
+  'Закрыть дверцу': 'Close the door',
+  'Взять бельё с пола': 'Pick up laundry from the floor',
+  'Положить бельё в барабан': 'Put laundry into the drum',
+  'Собрать простыню в охапку': 'Gather the sheet into a bundle',
+  'Положить простыню в барабан': 'Put the sheet into the drum',
+  'Взять вещи из таза': 'Take items from the basket',
+  'Взять полотенце из таза': 'Take a towel from the basket',
+  'Положить полотенце в барабан': 'Put the towel into the drum',
+  'Положить вещи в барабан': 'Put items into the drum',
+  'Выдвинуть лоток для порошка': 'Pull out the detergent drawer',
+  'Взять упаковку порошка': 'Pick up the detergent pack',
+  'Насыпать порошок в лоток': 'Pour detergent into the drawer',
+  'Задвинуть лоток': 'Push the drawer back in',
+  'Нажать кнопку запуска': 'Press the start button',
 };
 const LEVEL_NAMES = ['Task', 'Subtask', 'Atomic action'];
 const LEVEL_COLORS = ['#4c9aff', '#36cfc9', '#ffc53d'];
@@ -39,7 +55,7 @@ const LAYER_KEYS = ['boxes', 'masks', 'trajectories', 'hand2d', 'hand3d', 'depth
 // ---------------------------------------------------------------- language (ru / en)
 const I18N = {
   ru: {
-    pageTitle: 'Просмотр разметки',
+    pageTitle: 'Стирка белья: размеченный эпизод от первого лица', heading: 'Стирка белья: размеченный эпизод от первого лица',
     note: 'Только просмотр. Часть разметки получена моделями (позы, глубина, камера) и не является измерением.',
     loading: 'Загрузка разметки…', space: 'Пробел', speed: 'Скорость',
     hint: 'Пробел — пауза, ← → — ±1 с, , . — кадр',
@@ -71,7 +87,7 @@ const I18N = {
     loadFail: (m) => `Не удалось загрузить разметку: ${m}. Откройте страницу через веб-сервер (start-viewer), а не двойным кликом по файлу.`,
   },
   en: {
-    pageTitle: 'Annotation viewer',
+    pageTitle: 'Laundry Task: Annotated Egocentric Episode', heading: 'Laundry Task: Annotated Egocentric Episode',
     note: 'View only. Part of the annotations come from models (poses, depth, camera) and are not measurements.',
     loading: 'Loading annotations…', space: 'Space', speed: 'Speed',
     hint: 'Space — pause, ← → — ±1 s, , . — frame',
@@ -106,7 +122,7 @@ const I18N = {
 let lang = 'ru';
 try {
   const asked = new URLSearchParams(location.search).get('lang') || localStorage.getItem('lang');
-  lang = I18N[asked] ? asked : (/^ru/i.test(navigator.language || '') ? 'ru' : 'en');
+  lang = I18N[asked] ? asked : 'en';
 } catch (e) { /* storage blocked: keep the default */ }
 const t = (key, ...args) => { const v = I18N[lang][key]; return typeof v === 'function' ? v(...args) : v; };
 function applyStaticText() {
@@ -165,7 +181,7 @@ async function main() {
   const data = JSON.parse(new TextDecoder().decode(await fetchBytes('data.json.gz')));
   const ep = data.episode;
   const fps = ep.fps;
-  const setTitles = () => { document.title = t('docTitle', ep.name); $('title').textContent = t('docTitle', ep.name); };
+  const setTitles = () => { document.title = t('pageTitle'); };
   setTitles();
   $('loading').hidden = true;
   $('app').hidden = false;
@@ -597,7 +613,7 @@ async function main() {
         tctx.fillStyle = LEVEL_COLORS[level]; tctx.globalAlpha = a.status === 'proposed' ? 0.45 : 0.85;
         tctx.fillRect(x, 6 + level * (ROW + 2), width, ROW);
         tctx.globalAlpha = 1;
-        if (width > 50) { tctx.fillStyle = '#10131a'; tctx.fillText(actionTitle(a).slice(0, Math.floor(width / 6.5)), x + 4, 6 + level * (ROW + 2) + 14); }
+        if (width > 50) { tctx.fillStyle = '#10131a'; tctx.fillText(fitText(actionTitle(a), Math.floor(width / 6.5)), x + 4, 6 + level * (ROW + 2) + 14); }
       });
       tctx.fillStyle = '#9aa1ad'; tctx.fillText(LEVEL_NAMES[level], 4, 6 + level * (ROW + 2) + 14);
     }
@@ -673,6 +689,7 @@ async function main() {
       box.append(row);
     });
   }
+  const fitText = (text, max) => (text.length <= max ? text : `${text.slice(0, Math.max(1, max - 1))}…`);
   function esc(text) { return String(text).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
 
   function renderInfo() {
