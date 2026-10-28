@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title data-i18n="pageTitle">Laundry Task: Annotated Egocentric Episode</title>
   <meta name="description" content="Interactive viewer of a first-person laundry episode with action hierarchy, object tracking, hand pose, depth and 3D scene annotations.">
-  <link rel="stylesheet" href="viewer.css?v=15">
+  <link rel="stylesheet" href="viewer.css?v=16">
 </head>
 <body>
   <header>
@@ -13,10 +13,11 @@
       <h1 id="title" data-i18n="heading">Laundry Task: Annotated Egocentric Episode</h1>
       <span class="note" data-i18n="note">View only. Part of the annotations come from models (poses, depth, camera) and are not measurements.</span>
     </div>
+    <button id="side-toggle" type="button" aria-expanded="false" data-i18n="showPanel">Show menu</button>
     <div id="lang" role="group" aria-label="Language"><button type="button" data-lang="en">EN</button><button type="button" data-lang="ru">RU</button></div>
   </header>
   <div id="loading" data-i18n="loading">Loading annotations…</div>
-  <main id="app" hidden>
+  <main id="app" class="side-hidden" hidden>
     <section id="player">
       <div id="stage">
         <video id="video" playsinline preload="auto"></video>
@@ -35,7 +36,6 @@
         <label><span data-i18n="speed">Speed</span>
           <select id="speed"><option>0.25</option><option>0.5</option><option selected>1</option><option>2</option></select>
         </label>
-        <button id="side-toggle" type="button" aria-expanded="true" data-i18n="hidePanel">Hide panel ▸</button>
         <span class="hint" data-i18n="hint">Space - pause, ← → - ±1 s, , . - frame</span>
       </div>
       <canvas id="timeline"></canvas>
@@ -52,6 +52,6 @@
       <div id="tab-info" class="tab" hidden></div>
     </aside>
   </main>
-  <script src="viewer.js?v=15"></script>
+  <script src="viewer.js?v=16"></script>
 </body>
 </html>

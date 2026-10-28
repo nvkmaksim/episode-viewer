@@ -59,7 +59,7 @@ const I18N = {
     note: 'Только просмотр. Часть разметки получена моделями (позы, глубина, камера) и не является измерением.',
     loading: 'Загрузка разметки…', space: 'Пробел', speed: 'Скорость',
     hint: 'Пробел - пауза, ← → - ±1 с, , . - кадр',
-    hidePanel: 'Свернуть меню ▸', showPanel: '◂ Показать меню',
+    hidePanel: 'Скрыть меню', showPanel: 'Показать меню',
     tabActions: 'Действия', tabScene: 'Сцена 3D', tabInfo: 'О разметке',
     boxes: 'Рамки трекинга', masks: 'Маски', trajectories: 'Траектории', hand2d: 'Поза рук 2D', hand3d: 'Поза рук 3D',
     depth: 'Глубина', interactions: 'Взаимодействия', states: 'Состояния', subtitles: 'Субтитры действий',
@@ -94,7 +94,7 @@ const I18N = {
     note: 'View only. Part of the annotations come from models (poses, depth, camera) and are not measurements.',
     loading: 'Loading annotations…', space: 'Space', speed: 'Speed',
     hint: 'Space - pause, ← → - ±1 s, , . - frame',
-    hidePanel: 'Hide panel ▸', showPanel: '◂ Show panel',
+    hidePanel: 'Hide menu', showPanel: 'Show menu',
     tabActions: 'Actions', tabScene: '3D scene', tabInfo: 'About',
     boxes: 'Tracking boxes', masks: 'Masks', trajectories: 'Trajectories', hand2d: 'Hand pose 2D', hand3d: 'Hand pose 3D',
     depth: 'Depth', interactions: 'Interactions', states: 'States', subtitles: 'Action subtitles',
@@ -950,11 +950,10 @@ async function main() {
     $('app').classList.toggle('side-hidden', hidden);
     $('side-toggle').setAttribute('aria-expanded', String(!hidden));
     $('side-toggle').textContent = t(hidden ? 'showPanel' : 'hidePanel');
-    try { localStorage.setItem('sideHidden', hidden ? '1' : '0'); } catch (e) { /* ignore */ }
     window.dispatchEvent(new Event('resize'));
   }
   $('side-toggle').addEventListener('click', () => setSideHidden(!$('app').classList.contains('side-hidden')));
-  try { if (localStorage.getItem('sideHidden') === '1') setSideHidden(true); } catch (e) { /* ignore */ }
+  setSideHidden(true);   // the menu starts folded away; the button in the header opens it
   function setLang(next) {
     if (!I18N[next] || next === lang) return;
     lang = next;
