@@ -617,12 +617,6 @@ async function main() {
       });
       tctx.fillStyle = '#9aa1ad'; tctx.fillText(LEVEL_NAMES[level], 4, 6 + level * (ROW + 2) + 14);
     }
-    // where the geometry (camera, 3D hands) was computed
-    if (geometry) {
-      tctx.fillStyle = '#52c41a';
-      tctx.fillRect(px(geometry.start), 6 + 3 * (ROW + 2) + 2, Math.max(2, px(geometry.end) - px(geometry.start)), 6);
-      tctx.fillStyle = '#9aa1ad'; tctx.fillText('3D', 4, 6 + 3 * (ROW + 2) + 9);
-    }
     const x = px(frameNow());
     tctx.fillStyle = '#ff4d4f'; tctx.fillRect(x - 1, 0, 2, h);
   }
