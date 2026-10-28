@@ -72,16 +72,16 @@ const I18N = {
     counts: (a, i, s) => `Действий: ${a} · взаимодействий: ${i} · состояний: ${s}`,
     tracksMasks: (t, m) => `Объектов с треками: ${t} · масок: ${m}`,
     handFrames: (h) => `Поз рук (кадров): ${h}`, depthMaps: (n) => `Карт глубины: ${n}`,
-    scene3dLine: (g) => `Сцена 3D: ${g}`, frames: (a, b, c, d) => `кадры ${a}–${b} (${c}–${d})`, notComputed: 'не посчитана',
+    scene3dLine: (g) => `Сцена 3D: ${g}`, scenesList: (n, list) => `${n} сцен(ы): ${list}`, notComputed: 'не посчитана',
     infoRead: 'Как читать',
     read1: 'Слои выбираются в меню «Слои» в левом верхнем углу видео. Полоски под видео — иерархия действий (Task › Subtask › Atomic action); клик по полоске или по действию справа перематывает видео.',
     read2: 'Взаимодействия со знаком «?» и действия «не проверено» — предложения моделей, которые человек ещё не подтвердил.',
     infoLimits: 'Ограничения',
-    limits: (g) => `Позы рук, глубина и положение камеры — оценки моделей по видео с телефона, а не измерения. ${g ? `Масштаб метров ${g.scale.method === 'hand_size' ? `подогнан по размеру кисти (×${g.scale.factor})` : 'взят из модели глубины'}; угол обзора камеры предположен (${g.fov_deg}°). ` : ''}Путь камеры со временем накапливает ошибку.`,
+    limits: (sc) => `Позы рук, глубина и положение камеры — оценки моделей по видео с телефона, а не измерения. Путь камеры рвётся там, где трекинг теряется (например, ткань закрыла весь кадр), поэтому 3D разбито на ${sc.length} сцен(ы), у каждой своя система координат и свой масштаб${sc.length && sc.every((g) => g.scale.method === 'hand_size') ? ' (подогнан по размеру кисти)' : ''}; между сценами их нельзя совмещать. Угол обзора камеры предположен (${sc.length ? sc[0].fov_deg : 65}°). Внутри сцены путь со временем накапливает ошибку.`,
     s3title: 'Сцена 3D', camNow: 'камера сейчас', leftHand: 'левая рука', rightHand: 'правая рука', trail: 'линии — путь за последние 2 с',
     s3help: 'Тяните мышью — вращение, колесо — масштаб, двойной клик — сброс. Если комната «двоится», путь камеры и глубина не совпали.',
     s3go: 'К началу посчитанного отрезка',
-    s3info: (d, a, b, n) => `Посчитано на ${d} видео (${a}–${b}), камера: ${n} поз.`,
+    s3info: (i, n, d, p) => `Сцена ${i} из ${n}: ${d} видео, камера: ${p} поз.`,
     s3cloudFail: ' Облако точек не загрузилось.', outside3d: 'сейчас вне посчитанного отрезка 3D',
     frame: (n) => `кадр ${n}`,
     loadFail: (m) => `Не удалось загрузить разметку: ${m}. Откройте страницу через веб-сервер (start-viewer), а не двойным кликом по файлу.`,
@@ -104,16 +104,16 @@ const I18N = {
     counts: (a, i, s) => `Actions: ${a} · interactions: ${i} · states: ${s}`,
     tracksMasks: (t, m) => `Objects with tracks: ${t} · masks: ${m}`,
     handFrames: (h) => `Hand poses (frames): ${h}`, depthMaps: (n) => `Depth maps: ${n}`,
-    scene3dLine: (g) => `3D scene: ${g}`, frames: (a, b, c, d) => `frames ${a}–${b} (${c}–${d})`, notComputed: 'not computed',
+    scene3dLine: (g) => `3D scenes: ${g}`, scenesList: (n, list) => `${n} (${list})`, notComputed: 'not computed',
     infoRead: 'How to read',
     read1: 'Pick layers in the “Layers” menu at the top left of the video. The bars under the video are the action hierarchy (Task › Subtask › Atomic action); click a bar or an action on the right to seek the video.',
     read2: 'Interactions marked “?” and actions marked “unverified” are model proposals that a person has not confirmed yet.',
     infoLimits: 'Limitations',
-    limits: (g) => `Hand poses, depth and camera position are model estimates from a phone video, not measurements. ${g ? `The metric scale ${g.scale.method === 'hand_size' ? `is fitted to hand size (×${g.scale.factor})` : 'is taken from the depth model'}; the camera field of view is assumed (${g.fov_deg}°). ` : ''}The camera path accumulates error over time.`,
+    limits: (sc) => `Hand poses, depth and camera position are model estimates from a phone video, not measurements. The camera path breaks where tracking is lost (for example, cloth fills the whole frame), so the 3D is split into ${sc.length} scene${sc.length === 1 ? '' : 's'}, each with its own coordinate frame and scale${sc.length && sc.every((g) => g.scale.method === 'hand_size') ? ' (fitted to hand size)' : ''}; scenes cannot be overlaid on each other. The camera field of view is assumed (${sc.length ? sc[0].fov_deg : 65}°). Within a scene the path accumulates error over time.`,
     s3title: '3D scene', camNow: 'camera now', leftHand: 'left hand', rightHand: 'right hand', trail: 'lines — path over the last 2 s',
     s3help: 'Drag to rotate, wheel to zoom, double-click to reset. If the room looks doubled, the camera path and the depth disagree.',
     s3go: 'Jump to the start of the computed segment',
-    s3info: (d, a, b, n) => `Computed for ${d} of the video (${a}–${b}), camera: ${n} poses.`,
+    s3info: (i, n, d, p) => `Scene ${i} of ${n}: ${d} of video, camera: ${p} poses.`,
     s3cloudFail: ' The point cloud failed to load.', outside3d: 'currently outside the computed 3D segment',
     frame: (n) => `frame ${n}`,
     loadFail: (m) => `Could not load the annotations: ${m}. Open the page through a web server (start-viewer), not by double-clicking the file.`,
@@ -191,7 +191,10 @@ async function main() {
   const nameOf = (id) => (objects.find((o) => o.id === id) || {}).name || `#${id}`;
   const actions = data.actions;
   const hasVoice = actions.some((a) => a.voice);
-  const geometry = data.geometry;
+  // the camera path is cut where tracking was lost: every piece is a scene with its own world frame
+  const scenes = data.scenes || (data.geometry ? [data.geometry] : []);
+  let geometry = scenes[0] || null;     // the scene shown in the 3D tab
+  const sceneAt = (frame) => scenes.find((g) => frame >= g.start && frame <= g.end) || null;
 
   // ---------------------------------------------------------------- state
   const available = {
@@ -619,9 +622,9 @@ async function main() {
       tctx.fillStyle = '#9aa1ad'; tctx.fillText(LEVEL_NAMES[level], 4, 6 + level * (ROW + 2) + 14);
     }
     // where the geometry (camera, 3D hands) was computed
-    if (geometry) {
+    if (scenes.length) {
       tctx.fillStyle = '#52c41a';
-      tctx.fillRect(px(geometry.start), 6 + 3 * (ROW + 2) + 2, Math.max(2, px(geometry.end) - px(geometry.start)), 6);
+      scenes.forEach((g) => { tctx.fillRect(px(g.start), 6 + 3 * (ROW + 2) + 2, Math.max(2, px(g.end) - px(g.start)), 6); });
       tctx.fillStyle = '#9aa1ad'; tctx.fillText('3D', 4, 6 + 3 * (ROW + 2) + 9);
     }
     const x = px(frameNow());
@@ -650,7 +653,7 @@ async function main() {
   const tabs = { actions: $('tab-actions'), scene3d: $('tab-scene3d'), info: $('tab-info') };
   let tab = 'actions';
   document.querySelectorAll('#tabs button').forEach((button) => {
-    if (button.dataset.tab === 'scene3d' && !geometry) { button.disabled = true; button.title = t('noScene'); }
+    if (button.dataset.tab === 'scene3d' && !scenes.length) { button.disabled = true; button.title = t('noScene'); }
     button.addEventListener('click', () => {
       tab = button.dataset.tab;
       document.querySelectorAll('#tabs button').forEach((b) => b.classList.toggle('active', b === button));
@@ -697,7 +700,6 @@ async function main() {
     const box = tabs.info;
     const count = (list) => list.length;
     const handPoses = Object.entries(data.hands).map(([side, h]) => `${t(side === 'left' ? 'left' : 'right')} ${h.f.length}`).join(', ') || t('none');
-    const g = geometry;
     const maskCount = data.masks ? Object.values(data.masks).reduce((n, m) => n + Object.keys(m).length, 0) : (data.masks_file ? t('yes') : 0);
     box.innerHTML = `
       <div class="card"><h3>${t('infoWhat')}</h3>
@@ -706,14 +708,14 @@ async function main() {
         <div>${t('tracksMasks', Object.keys(tracks).length, maskCount)}</div>
         <div>${t('handFrames', handPoses)}</div>
         <div>${t('depthMaps', data.depth ? data.depth.f.length : 0)}</div>
-        <div>${t('scene3dLine', g ? t('frames', g.start, g.end, clock(g.start / fps), clock(g.end / fps)) : t('notComputed'))}</div>
+        <div>${t('scene3dLine', scenes.length ? t('scenesList', scenes.length, scenes.map((g) => `${clock(g.start / fps)}–${clock(g.end / fps)}`).join(', ')) : t('notComputed'))}</div>
       </div>
       <div class="card"><h3>${t('infoRead')}</h3>
         <div>${t('read1')}</div>
         <div style="margin-top:6px">${t('read2')}</div>
       </div>
       <div class="card"><h3>${t('infoLimits')}</h3>
-        <div>${t('limits', g)}</div>
+        <div>${t('limits', scenes)}</div>
       </div>`;
   }
 
@@ -725,20 +727,47 @@ async function main() {
   let frameInfo = { centre: [0, 0, 0], radius: 1 };
   let projectCache = null;
 
+  function loadScene() {
+    const g = geometry;
+    cloud = null; baseDirty = true; dirty = true;
+    const n = scenes.indexOf(g);
+    $('s3-info').textContent = t('s3info', n + 1, scenes.length, clock((g.end - g.start) / fps), g.camera.f.length);
+    document.querySelectorAll('#s3-scenes .chip').forEach((c) => c.classList.toggle('active', Number(c.dataset.scene) === n));
+    if (!g.cloud) return;
+    fetchBytes(g.cloud).then((bytes) => {
+      if (geometry !== g) return;   // another scene was picked while this one loaded
+      const count = new DataView(bytes.buffer, bytes.byteOffset).getUint32(0, true);
+      const copy = bytes.slice(4);
+      cloud = { n: count, xyz: new Float32Array(copy.buffer, 0, count * 3), rgb: new Uint8Array(copy.buffer, count * 12, count * 3) };
+      const med = (k) => { const v = []; for (let i = 0; i < count; i += Math.max(1, Math.floor(count / 4000))) v.push(cloud.xyz[3 * i + k]); return v.sort((a, b) => a - b); };
+      const [xs, ys, zs] = [med(0), med(1), med(2)];
+      const mid = (v) => v[Math.floor(v.length / 2)] || 0;
+      const span = (v) => (v[Math.floor(v.length * 0.97)] || 0) - (v[Math.floor(v.length * 0.03)] || 0);
+      frameInfo = { centre: [mid(xs), mid(ys), mid(zs)], radius: Math.max(span(xs), span(ys), span(zs), 0.5) / 2 };
+      baseDirty = true; dirty = true;
+    }).catch(() => { if (geometry === g) $('s3-info').textContent += t('s3cloudFail'); });
+  }
+
   function initScene3d() {
-    if (scene3dReady || !geometry) return;
+    if (scene3dReady || !scenes.length) return;
     scene3dReady = true;
+    geometry = sceneAt(frameNow()) || geometry;
     const box = tabs.scene3d;
     box.innerHTML = `
       <div class="card"><h3>${t('s3title')}</h3>
+        <div class="chips" id="s3-scenes"></div>
         <div class="muted" id="s3-info"></div>
         <canvas id="cloud" width="420" height="315"></canvas>
         <div class="legend"><span><span class="swatch" style="background:#fff"></span> ${t('camNow')}</span><span><span class="swatch" style="background:${HAND_COLORS.left}"></span> ${t('leftHand')}</span><span><span class="swatch" style="background:${HAND_COLORS.right}"></span> ${t('rightHand')}</span><span>${t('trail')}</span></div>
         <div class="muted">${t('s3help')}</div>
-        <p><button type="button" id="s3-go">${t('s3go')}</button></p>
       </div>`;
-    $('s3-info').textContent = t('s3info', clock((geometry.end - geometry.start) / fps), clock(geometry.start / fps), clock(geometry.end / fps), geometry.camera.f.length);
-    $('s3-go').addEventListener('click', () => seek(geometry.start));
+    scenes.forEach((g, n) => {
+      const chip = document.createElement('button');
+      chip.type = 'button'; chip.className = 'chip'; chip.dataset.scene = n;
+      chip.textContent = `${n + 1} · ${clock(g.start / fps)}–${clock(g.end / fps)}`;
+      chip.addEventListener('click', () => { seek(g.start); });
+      $('s3-scenes').append(chip);
+    });
     cloudCanvas = $('cloud'); cctx = cloudCanvas.getContext('2d');
     let drag = null;
     cloudCanvas.addEventListener('pointerdown', (e) => { cloudCanvas.setPointerCapture(e.pointerId); drag = { x: e.clientX, y: e.clientY, yaw: view.yaw, pitch: view.pitch }; });
@@ -751,19 +780,7 @@ async function main() {
     cloudCanvas.addEventListener('pointerup', () => { drag = null; });
     cloudCanvas.addEventListener('dblclick', () => { Object.assign(view, { yaw: 0, pitch: 0.35, zoom: 1 }); baseDirty = true; dirty = true; });
     cloudCanvas.addEventListener('wheel', (e) => { e.preventDefault(); view.zoom = Math.min(6, Math.max(0.3, view.zoom * (e.deltaY < 0 ? 1.1 : 0.9))); baseDirty = true; dirty = true; }, { passive: false });
-    if (geometry.cloud) {
-      fetchBytes(geometry.cloud).then((bytes) => {
-        const n = new DataView(bytes.buffer, bytes.byteOffset).getUint32(0, true);
-        const copy = bytes.slice(4);
-        cloud = { n, xyz: new Float32Array(copy.buffer, 0, n * 3), rgb: new Uint8Array(copy.buffer, n * 12, n * 3) };
-        const med = (k) => { const v = []; for (let i = 0; i < n; i += Math.max(1, Math.floor(n / 4000))) v.push(cloud.xyz[3 * i + k]); return v.sort((a, b) => a - b); };
-        const [xs, ys, zs] = [med(0), med(1), med(2)];
-        const mid = (v) => v[Math.floor(v.length / 2)] || 0;
-        const span = (v) => (v[Math.floor(v.length * 0.97)] || 0) - (v[Math.floor(v.length * 0.03)] || 0);
-        frameInfo = { centre: [mid(xs), mid(ys), mid(zs)], radius: Math.max(span(xs), span(ys), span(zs), 0.5) / 2 };
-        baseDirty = true; dirty = true;
-      }).catch(() => { $('s3-info').textContent += t('s3cloudFail'); });
-    }
+    loadScene();
     dirty = true;
   }
 
@@ -811,6 +828,8 @@ async function main() {
 
   function update3dMarkers(frame) {
     if (!scene3dReady || tab !== 'scene3d' || !cloudCanvas) return;
+    const here = sceneAt(frame);
+    if (here && here !== geometry) { geometry = here; loadScene(); }
     const project = projector();
     if (baseDirty || !base) drawCloudBase(project);
     cctx.putImageData(base, 0, 0);
